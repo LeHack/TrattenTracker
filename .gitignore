@@ -91,6 +91,7 @@ ENV/
 # eclipse stuff
 .project
 .pydevproject
+.settings
 
 # virtualenv installation files (local)
 bin
@@ -99,3 +100,20 @@ pip-selfcheck.json
 
 # SQLite database
 db.sqlite3
+
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# dependencies
+node_modules
+
+# testing
+coverage
+
+# production
+assets
+build
+
+# misc
+.DS_Store
+.env
+npm-debug.log

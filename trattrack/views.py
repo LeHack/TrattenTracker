@@ -1,10 +1,5 @@
-'''
-Created on 24.11.2016
-
-@author: lehack
-'''
-from django.http import HttpResponse
+from django.shortcuts import render
 
 
 def index(request):
-    return HttpResponse("Welcome to the TrattenTracker index site.")
+    return render(request, 'index.html', {})

@@ -95,3 +95,11 @@ def get_last_balance(request, attendee_id):
         "amount": balance.amount,
         "date": "%s-%s" % (str(balance.year), str(balance.month))
     })
+
+# TODO: Implement session handling and make this dynamic
+def get_session_status(request):
+    session = {
+        "status": "LoggedIn",
+        "user": "LeHack"
+    }
+    return JsonResponse(session)
