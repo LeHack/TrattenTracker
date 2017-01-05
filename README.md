@@ -15,8 +15,8 @@ Autorzy: Łukasz Hejnak, Łukasz Malinowski
         sudo echo "127.0.0.100   trattentracker.pl" >> /etc/hosts
 8. python manage.py migrate
 9. npm install
-10. npm run build
+10. npm run start
 11. python manage.py runserver trattentracker.pl:8000
-12. wejdź na trattentracker.pl:8000
+12. wejdź na trattentracker.pl:3000 (*3000* nie 8000!)
 13. ???
 14. profit $$$

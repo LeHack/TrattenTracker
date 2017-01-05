@@ -24,16 +24,15 @@ function fetchSessionStatus(sessionHandler) {
 }
 
 function Login(props) {
-    if (props.user == null) {
-        return (
-            <div className="loginStatus">
-              <a href={props.login}>Login</a> 
-            </div> 
-        );
+    let userName = '';
+    let loginLink = (<a href={props.login}>Login</a>);
+    if (props.user != null) {
+        userName = "Logged in as " + props.user;
+        loginLink = (<a href={props.logout}>Logout</a>);
     }
     return (
         <div className="loginStatus">
-          Logged in as {props.user}. <a href={props.logout}>Logout</a>
+          {userName} {loginLink}
         </div> 
     );
 }

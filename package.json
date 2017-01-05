@@ -2,6 +2,7 @@
   "name": "TrattenTracker",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://trattentracker.pl:8000",
   "devDependencies": {
     "css-loader": "^0.26.1",
     "react-scripts": "0.8.4"
