@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"allowUnusedLabels": false,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitReturns": true,
+		"strictNullChecks": false,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"diagnostics": true,
+		"pretty": true,
+		"declaration": false
+	}
+}
