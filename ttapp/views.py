@@ -100,6 +100,7 @@ def get_last_balance(request, attendee_id):
 def get_session_status(request):
     session = {
         "status": "LoggedIn",
-        "user": "LeHack"
+        "user": "LeHack",
+        "mode": "admin"
     }
     return JsonResponse(session)

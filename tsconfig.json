@@ -1,13 +1,21 @@
 {
-	"compilerOptions": {
-		"allowUnusedLabels": false,
-		"noFallthroughCasesInSwitch": true,
-		"noImplicitReturns": true,
-		"strictNullChecks": false,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"diagnostics": true,
-		"pretty": true,
-		"declaration": false
-	}
+  "compilerOptions": {
+    "allowUnusedLabels": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "strictNullChecks": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "diagnostics": true,
+    "pretty": true,
+    "declaration": false,
+    "module": "none",
+    "target": "ES6",
+    "jsx": "React",
+    "outDir": "assets"
+  },
+  "compileOnSave": true,
+  "include": [
+    "src"
+  ]
 }
