@@ -56,10 +56,19 @@ def get_training_days_count(request, group_id, year, month):
     return JsonResponse({"count": day_count})
 
 
-def list_attendance(request, attendee_id, year, month):
+def list_attendance(request, attendee_id, year=None, month=None):
+    stWith = []
+    if year is not None:
+        stWith.append(str(year))
+    if month is not None:
+        stWith.append(str(month))
+    params = {}
+    if len(stWith) > 0:
+        params["date__startswith"] = "-".join(stWith)
+
     data = Attendance.objects.filter(
         attendee=get_object_or_404(Attendees, pk=attendee_id),
-        date__startswith="%s-%s" % (str(year), str(month))
+        **params
     ).all()
     attendance = []
     for a in data:
