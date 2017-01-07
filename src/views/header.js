@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Jumbotron } from 'react-bootstrap';
 
 function Login(props) {
     let userName = '';
@@ -17,11 +18,11 @@ function Login(props) {
 class AppHeader extends Component {
     render() {
         return (
-            <div className="jumbotron backdrop">
+            <Jumbotron bsClass="jumbotron backdrop">
                 <Login user={this.props.user} login="#" logout="#"/>
                 <h1>Tratten Tracker</h1>
-                <p>Welcome to the Training Attendance Tracker. Use one of the below options to navigate the application.</p>
-            </div>
+                <p className="content-to-hide">Welcome to the Training Attendance Tracker. Use one of the below options to navigate the application.</p>
+            </Jumbotron>
         );
     }
 }

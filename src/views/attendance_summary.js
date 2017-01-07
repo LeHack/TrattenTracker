@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import AppHeader  from './header';
 import utils from '../utils';
-import { DropdownButton, MenuItem } from 'react-bootstrap';
 import './attendance_summary.css';
+
+import { DropdownButton, MenuItem, Table } from 'react-bootstrap';
 
 function GroupSelect(props) {
     let selectedName = '...';
@@ -50,7 +51,7 @@ class AttendeeList extends Component {
         // shortcut
         let s = this.state.stats;
         return (
-            <table className="table table-striped">
+            <Table responsive striped>
                 <thead>
                     <tr>
                         <th>Id</th>
@@ -78,7 +79,7 @@ class AttendeeList extends Component {
                         </tr>
                     )}
                 </tbody>
-            </table>
+            </Table>
         );
     }
 }
