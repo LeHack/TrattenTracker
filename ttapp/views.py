@@ -1,6 +1,9 @@
+from datetime import date
+from dateutil.relativedelta import relativedelta
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from ttapp.models import Groups, TrainingMonth, TrainingSchedule, Attendance, Attendees, Payment, MonthlyBalance
+from ttapp.utils import calculateTrainingDaysInMonth
 
 
 def list_groups(request):
@@ -11,19 +14,28 @@ def list_groups(request):
             "name": g.name,
             "fee": g.monthly_fee
         })
-    return JsonResponse({"groups": groups})
+
+    # TODO: here we should use some external method to calculate the "next" group,
+    # read issue#10 for a detailed description regarding selecting the default group
+    selected_group = groups[0]["group_id"]
+
+    return JsonResponse({"groups": groups, "selected": selected_group})
 
 
-def list_attendees(request):
-    attendees = []
-    for a in Attendees.objects.all():
-        attendees.append({
+def list_attendees(request, group_id=None):
+    query = Attendees.objects
+    if group_id is not None:
+        query = query.filter(group=get_object_or_404(Groups, pk=group_id))
+
+    data = []
+    for a in query.all():
+        data.append({
             "attendee_id": a.pk,
             "group_id": a.group.pk,
             "name": "%s %s" % (a.first_name, a.last_name),
             "sport_card": a.has_sport_card,
         })
-    return JsonResponse({"attendees": attendees})
+    return JsonResponse({"attendees": data})
 
 
 def list_schedules(request):
@@ -41,19 +53,8 @@ def list_schedules(request):
 
 
 def get_training_days_count(request, group_id, year, month):
-    day_count = None
-    try:
-        custom = TrainingMonth.objects.get(
-            group=get_object_or_404(Groups, pk=group_id),
-            year=year,
-            month=month
-        )
-        day_count = custom.day_count
-    except TrainingMonth.DoesNotExist:
-        # TODO: calculate the training days using TrainingSchedule and selected month
-        day_count = 42
-
-    return JsonResponse({"count": day_count})
+    group = get_object_or_404(Groups, pk=group_id)
+    return JsonResponse({"count": calculateTrainingDaysInMonth(group, year, month)})
 
 
 def list_attendance(request, attendee_id, year=None, month=None):
@@ -78,6 +79,59 @@ def list_attendance(request, attendee_id, year=None, month=None):
             "sport_card": a.used_sport_card,
         })
     return JsonResponse({"attendance": attendance})
+
+
+def attendance_summary(request, attendee_id=None, group_id=None, year=None, month=None):
+    ''' Calculates the attendance statistics for the given attendee or group '''
+    defaultMonthRange = 2 # 2 for testing, later switch to 6
+    attendeesSummary = {}
+    attendees = []
+    if group_id is not None:
+        attendees = Attendees.objects.filter(group=get_object_or_404(Groups, pk=group_id)).all()
+    elif attendee_id is not None:
+        attendees.append(get_object_or_404(Attendees, pk=attendee_id))
+
+    groupTrainingDays = {}
+    months = []
+    if year is not None and month is not None:
+        months.append(date(year, month, 1))
+    else:
+        # use last 6 months, including current month
+        t = date.today()
+        iterMonth = date(t.year, t.month, 1)
+        for _ in range(defaultMonthRange):
+            months.append(iterMonth)
+            iterMonth -= relativedelta(months = 1)
+
+    groups = Groups.objects.all()
+
+    for a in attendees:
+        aKey = str(a.pk)
+        for month in months:
+            for g in groups:
+                # calculate only once for each group/month
+                if g.pk not in groupTrainingDays:
+                    groupTrainingDays[g.pk] = {}
+                if month not in groupTrainingDays[g.pk]:
+                    groupTrainingDays[g.pk][month] = calculateTrainingDaysInMonth(g, month.year, month.month)
+
+                if aKey not in attendeesSummary:
+                    attendeesSummary[aKey] = { "basic": { "count": 0, "total": 0 }, "extra": { "count": 0, "total": 0 } }
+
+                atType = "basic" if a.group.pk == g.pk else "extra"
+                attendeesSummary[aKey][atType]["total"] +=  groupTrainingDays[g.pk][month]
+                attendeesSummary[aKey][atType]["count"] +=  Attendance.objects.filter(
+                    attendee=a,
+                    training__group=g,
+                    date__startswith= "%s-%s-" % (month.year, month.month)
+                ).count()
+
+        for atType in attendeesSummary[aKey]:
+            total = attendeesSummary[aKey][atType].pop("total", 0)
+            if total > 0:
+                attendeesSummary[aKey][atType]["freq"] = "%d" % (100 * attendeesSummary[aKey][atType]["count"] / total)
+
+    return JsonResponse({"stats": attendeesSummary})
 
 
 def list_payments(request, attendee_id, year):

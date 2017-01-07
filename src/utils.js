@@ -15,7 +15,13 @@ module.exports = {
     fetchSessionStatus: function(resultHandler) {
         fetchFromBackend('/rest/session', resultHandler)
     },
-    fetchAttendees: function(resultHandler) {
-        fetchFromBackend('/rest/attendees', resultHandler)
+    fetchAttendees: function(groupId, resultHandler) {
+        fetchFromBackend('/rest/attendees/group/' + groupId, resultHandler)
+    },
+    fetchGroups: function(resultHandler) {
+        fetchFromBackend('/rest/groups', resultHandler)
+    },
+    fetchGroupAttendanceSummary: function(groupId, resultHandler) {
+        fetchFromBackend('/rest/attendance/group/summary/' + groupId, resultHandler)
     }
 };
