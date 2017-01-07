@@ -1,8 +1,9 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { Link } from 'react-router'
-import AppHeader  from '../components/header';
+import AppHeader from '../components/header';
+import { Nav } from 'react-bootstrap';
+import Session from '../components/session';
 import cfg from '../route_config';
-import utils from '../utils';
 
 /*
 * http://usejsdoc.org/
@@ -51,36 +52,22 @@ function AppNavigation(props) {
         );
     }
     return (
-        <div className="col-sm-4 middle">
-            <div className="list-group">
-                {selItems}
-            </div>
-        </div>
+        <Nav bsClass="middle" bsStyle="pills" stacked>
+            {selItems}
+        </Nav>
     );
 }
 
-class Main extends Component {
-    constructor() {
-        super();
-        this.state = {
-            session: { user: null, mode: null }
-        };
-    }
-
-    handleSession(session) {
-        this.setState({
-            session: session
-        });
-    }
-
-    componentDidMount() {
-        utils.fetchSessionStatus((session) => this.handleSession(session));
-    }
-
+class Main extends Session {
     render() {
+        let navIntro = (
+            <p className="content-to-hide">
+                Witamy w Training Attendance Tracker - aplikacji do zbierania danych dotyczących frekwencji treningowej oraz bieżących rozliczeń.
+            </p>
+        );
         return (
             <div>
-                <AppHeader user={this.state.session.user}/>
+                <AppHeader viewJSX={navIntro} session={this.state.session}/>
                 <AppNavigation mode={this.state.session.mode}/>
             </div>
         );

@@ -1,5 +1,7 @@
-import React, { Component } from 'react';
-import { Jumbotron } from 'react-bootstrap';
+import React from 'react';
+import { Breadcrumb, Jumbotron } from 'react-bootstrap';
+import cfg from '../route_config';
+import './header.css';
 
 function Login(props) {
     let userName = '';
@@ -15,16 +17,26 @@ function Login(props) {
     );
 }
 
-class AppHeader extends Component {
-    render() {
-        return (
+function AppHeader(props) {
+    return (
+        <div>
             <Jumbotron bsClass="jumbotron backdrop">
-                <Login user={this.props.user} login="#" logout="#"/>
-                <h1>Tratten Tracker</h1>
-                <p className="content-to-hide">Welcome to the Training Attendance Tracker. Use one of the below options to navigate the application.</p>
+                <Login user={props.session.user} login="#" logout="#"/>
+                <h1>TrAtten Tracker</h1>
+                {props.viewJSX}
             </Jumbotron>
-        );
-    }
+            {props.location &&
+                <Breadcrumb>
+                    <Breadcrumb.Item href={cfg.routes.main}>
+                        Start
+                    </Breadcrumb.Item>
+                    <Breadcrumb.Item active>
+                        {props.location}
+                    </Breadcrumb.Item>
+                </Breadcrumb>
+            }
+        </div>
+    );
 }
 
 export default AppHeader;

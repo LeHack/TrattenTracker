@@ -1,7 +1,7 @@
-import React, { Component } from 'react';
-import AppHeader  from '../components/header';
+import React from 'react';
+import AppHeader from '../components/header';
 import AttendeeList from '../components/attendee_list';
-import utils from '../utils';
+import Session from '../components/session';
 import './attendance_summary.css';
 
 class AttendeeSummaryList extends AttendeeList {
@@ -37,26 +37,12 @@ class AttendeeSummaryList extends AttendeeList {
 }
 
 
-class AttendanceSummary extends Component {
-    constructor() {
-        super();
-        this.state = {
-            session: { "user": null },
-        };
-    }
-
-    componentDidMount() {
-        utils.fetchSessionStatus((session) => function(self, session){
-            self.setState({
-                session: session
-            });
-        }(this, session));
-    }
-
+class AttendanceSummary extends Session {
     render() {
+        let title = (<p>Zestawienie obecności</p>);
         return (
             <div>
-                <AppHeader user={this.state.session.user} />
+                <AppHeader viewJSX={title} session={this.state.session} location="Zestawienie obecności" />
                 <AttendeeSummaryList />
             </div>
         );

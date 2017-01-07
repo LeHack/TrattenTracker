@@ -9,7 +9,7 @@ import cfg from './route_config';
 
 module.exports = (
     <Router history={browserHistory}>
-        <Route path='/' component={Main}/>
+        <Route path={cfg.routes.main} component={Main}/>
         <Route path={cfg.routes.attendance} component={Attendance}/>
         <Route path={cfg.routes.payment} component={NotFound}/>
         <Route path={cfg.routes.attendance_summary} component={AttendanceSummary}/>
