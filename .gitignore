@@ -117,3 +117,7 @@ build
 .DS_Store
 .env
 npm-debug.log*
+
+# intellij idea
+.idea
+*.iml
