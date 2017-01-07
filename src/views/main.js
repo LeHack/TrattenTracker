@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router'
-import AppHeader  from './header';
+import AppHeader  from '../components/header';
 import cfg from '../route_config';
 import utils from '../utils';
 
