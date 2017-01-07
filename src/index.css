@@ -4,48 +4,27 @@ body {
     font-family: sans-serif;
     background: rgb(240,240,240);
 }
-div.backdrop {
-    background: url(backdrop.png) center no-repeat;
-    color: rgb(240,240,240);
+
+#root {
+	width: 70%;
+	margin-left: 15%;
 }
-div.jumbotron {
-    padding-top: 10px;
-    padding-bottom: 10px;
-}
-.jumbotron h1,p {
-    width: 80%;
-}
-.jumbotron h1 { padding-left: 20%; }
-.jumbotron p { padding-left: 20%; }
 
 .middle {
 	width: 50%;
 	margin-left: 25%;
-}
-.loginStatus {
-    float: right;
-    padding-right: 5%;
-    font-size: 1em;
-}
-.loginStatus a {
-    color: rgb(240,240,240);
-    font-weight: 600;
+	margin-top: 20px;
+	padding: 0;
 }
 
-@media (max-width: 600px) {
-    .content-to-hide {
-        display: none;
-    }
-    .loginStatus {
-        font-size: .75em;
-        padding-right: 0;
-    }
-    .middle {
+@media (max-width: 650px) {
+	#root {
+	    width: 98%;
+	    margin-left: 1%;
+	    margin-top: 0;
+	}
+	.middle {
         width: 90%;
         margin-left: 5%;
     }
-	.jumbotron h1,p {
-	    width: 98%;
-	    padding-left: 0;
-	}
 }

@@ -13,14 +13,22 @@ class GroupSelect extends Component {
         };
     }
 
+    handleGroupChange(groupId) {
+        // update our own state
+        this.setState({
+            selectedGroupId: groupId,
+        });
+        // and fire the parent handler
+        this.props.changeHandler(groupId);
+    }
+
     componentDidMount() {
         utils.fetchGroups((data) => function(self, data){
             self.setState({
                 groups: data.groups,
                 selectedGroupId: data.selected,
             });
-
-            // only fetch attendees after fetching the selected group
+            // we must call this once on init
             self.props.changeHandler(data.selected);
         }(this, data));
     }
@@ -35,13 +43,11 @@ class GroupSelect extends Component {
         }
 
         return (
-            <div className="page-header">
-                <DropdownButton bsStyle="default" title={selectedName} id="selectGroup" onSelect={this.props.changeHandler}>
-                    {this.state.groups.map((g) =>
-                        <MenuItem key={g.group_id} eventKey={g.group_id}>{g.name}</MenuItem>
-                    )}
-                </DropdownButton>
-            </div>
+            <DropdownButton bsStyle="default" title={selectedName} id="selectGroup" onSelect={(groupId, event) => this.handleGroupChange(groupId, event)}>
+                {this.state.groups.map((g) =>
+                    <MenuItem key={g.group_id} eventKey={g.group_id}>{g.name}</MenuItem>
+                )}
+            </DropdownButton>
         );
     }
 }
