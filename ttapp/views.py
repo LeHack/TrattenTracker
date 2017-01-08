@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q
 from django.http import JsonResponse
@@ -40,18 +40,32 @@ def list_attendees(request, group_id=None):
 
 
 def list_trainings(request, year=None, month=None):
-    ''' List all trainings from all groups for the given month and automatically select the closest one (see issue#10) '''
-    schedules = []
-    for ts in TrainingSchedule.objects.all():
-        schedules.append({
-            "trainingschedule_id": ts.pk,
-            "group_id": ts.group.pk,
-            "day_of_week": ts.dow,
-            "begin": ts.begin_time.strftime('%H:%M'),
-            "end": ts.end_time.strftime('%H:%M'),
-            "sport_card": ts.sport_card_allowed,
-        })
-    return JsonResponse({"schedules": schedules})
+    ''' List  all trainings from all groups for the given month and automatically select the closest one (see issue#10) '''
+    trainings = []
+    today = datetime.today()
+    months = []
+    if year is not None and month is not None:
+        months.append( date(year, month, 1) )
+    else:
+        # by default show current and last month
+        months.append( today - relativedelta(months=1) );
+        months.append( today );
+
+    id = 1
+    for month in months:
+        for t in get_trainings_in_month(month.year, month.month):
+            if t["date"] - timedelta(minutes = 20) <= today:
+                training = {
+                    # we need a custom id for these entries, this is used only in UI
+                    "id": "training" + str(id),
+                    "training_id": t["training"].pk,
+                    "date": t["date"].strftime("%Y-%m-%d %H:%M"),
+                }
+                trainings.append(training)
+                id += 1
+    trainings = sorted(trainings, key=lambda s: s["date"])
+    # by default select the last one
+    return JsonResponse({"trainings": trainings[-6:], "selected": trainings[-1]["id"]})
 
 
 def list_attendance(request, attendee_id, year=None, month=None):

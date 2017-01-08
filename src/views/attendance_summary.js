@@ -2,9 +2,27 @@ import React from 'react';
 import AppHeader from '../components/header';
 import AttendeeList from '../components/attendee_list';
 import Session from '../components/session';
+import utils from '../utils';
 import './attendance_summary.css';
 
 class AttendeeSummaryList extends AttendeeList {
+    constructor() {
+        super();
+        this.state = {
+            ...this.state,
+            stats: {},
+        };
+    }
+
+    handleGroupChange(groupId, event) {
+        super.handleGroupChange(groupId, event);
+        utils.fetchGroupAttendanceSummary(groupId, (data) => function(self, data){
+            self.setState({
+                stats: data.stats
+            });
+        }(this, data));
+    }
+
     renderHeaders() {
         return (
             <thead>

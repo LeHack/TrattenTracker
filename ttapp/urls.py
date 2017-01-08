@@ -5,6 +5,7 @@ urlpatterns = [
     url(r'^groups$', views.list_groups, name='list_groups'),
     url(r'^attendees$', views.list_attendees, name='list_attendees'),
     url(r'^attendees/group/(?P<group_id>[0-9]+)$', views.list_attendees, name='list_attendees_by_group'),
+    url(r'^trainings$', views.list_trainings, name='list_current_month_trainings'),
     url(r'^trainings/(?P<year>[0-9]+)/(?P<month>[0-9]+)$', views.list_trainings, name='list_trainings'),
     url(r'^attendance/(?P<attendee_id>[0-9]+)$', views.list_attendance, name='list_attendance_all'),
     url(r'^attendance/(?P<attendee_id>[0-9]+)/(?P<year>[0-9]+)$', views.list_attendance, name='list_attendance_year'),

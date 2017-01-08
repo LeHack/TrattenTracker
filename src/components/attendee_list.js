@@ -4,7 +4,7 @@ import utils from '../utils';
 import { DropdownButton, MenuItem, Table } from 'react-bootstrap';
 
 
-class GroupSelect extends Component {
+export class GroupSelect extends Component {
     constructor() {
         super();
         this.state = {
@@ -14,12 +14,14 @@ class GroupSelect extends Component {
     }
 
     handleGroupChange(groupId) {
-        // update our own state
-        this.setState({
-            selectedGroupId: groupId,
-        });
-        // and fire the parent handler
-        this.props.changeHandler(groupId);
+        if (groupId !== this.state.selectedGroupId) {
+            // update our own state
+            this.setState({
+                selectedGroupId: groupId,
+            });
+            // and fire the parent handler
+            this.props.changeHandler(groupId);
+        }
     }
 
     componentDidMount() {
@@ -43,20 +45,19 @@ class GroupSelect extends Component {
         }
 
         return (
-            <DropdownButton bsStyle="default" title={selectedName} id="selectGroup" onSelect={(groupId, event) => this.handleGroupChange(groupId, event)}>
+            <DropdownButton bsStyle="default" title={selectedName} id="selectGroup" onSelect={(groupId) => this.handleGroupChange(groupId)}>
                 {this.state.groups.map((g) =>
-                    <MenuItem key={g.group_id} eventKey={g.group_id}>{g.name}</MenuItem>
+                    <MenuItem key={"group" + g.group_id} eventKey={g.group_id} active={g.group_id === this.state.selectedGroupId ? true : false}>{g.name}</MenuItem>
                 )}
             </DropdownButton>
         );
     }
 }
 
-class AttendeeList extends Component {
+export class AttendeeList extends Component {
     constructor() {
         super();
         this.state = {
-            stats: {},
             attendees: [],
         };
     }
@@ -65,11 +66,6 @@ class AttendeeList extends Component {
         utils.fetchAttendees(groupId, (data) => function(self, data){
             self.setState({
                 attendees: data.attendees
-            });
-        }(this, data));
-        utils.fetchGroupAttendanceSummary(groupId, (data) => function(self, data){
-            self.setState({
-                stats: data.stats
             });
         }(this, data));
     }

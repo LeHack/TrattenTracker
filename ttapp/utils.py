@@ -26,6 +26,7 @@ def get_trainings_in_month(year, month, group=None):
                 if group is None or group == s.group:
                     trainings.append({
                         "group": s.group,
+                        "training": s,
                         "date": datetime( iterdate.year, iterdate.month, iterdate.day, s.begin_time.hour, s.begin_time.minute )
                     })
         # add days until we reach next month
