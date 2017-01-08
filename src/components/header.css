@@ -36,4 +36,7 @@ ol.breadcrumb {
     .jumbotron h1, .jumbotron p {
         padding-left: 5%;
     }
+    ol.breadcrumb {
+        margin: 0;
+    }
 }

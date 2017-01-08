@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import { DropdownButton, MenuItem, ListGroup, ListGroupItem } from 'react-bootstrap';
+import { Collapse, DropdownButton, MenuItem, ListGroup, ListGroupItem } from 'react-bootstrap';
 import AppHeader  from '../components/header';
-import { AttendeeList, GroupSelect } from '../components/attendee_list';
 import Session from '../components/session';
 import utils from '../utils';
 import './attendance.css';
+
 
 class TrainingSelect extends Component {
     constructor(props) {
@@ -67,14 +67,16 @@ class TrainingSelect extends Component {
     }
 }
 
-class AttendanceInput extends AttendeeList {
+class AttendanceInput extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            ...this.state,
+            attendees: [],
+            attendeeGroup: {},
             attendance: {},
             training: null,
         };
+        this.groupLoading = [];
     }
 
     updateAttendance(id) {
@@ -82,6 +84,61 @@ class AttendanceInput extends AttendeeList {
         updated[id] = !updated[id]
         this.setState({
             attendance: updated,
+        });
+        // now send the data to backend
+        // ...
+    }
+
+    componentDidMount() {
+        utils.fetchGroups((data) => function(self, data){
+            for (let group of data.groups) {
+                self.groupLoading.push({ id: group.group_id, done: false });
+                self.processGroup(group);
+            }
+        }(this, data));
+    }
+
+    processGroup(group) {
+        // join together data for all groups
+        utils.fetchAttendees(group.group_id, (data) => function(self, data){
+            let groupState = {};
+            let groupId = "GRP:" + group.group_id;
+            groupState[groupId] = false;
+            let attendeGroup = {
+                label: {
+                    id: groupId,
+                    name: group.name,
+                },
+                entries: data.attendees,
+            };
+
+            for (let g of self.groupLoading) {
+                if (g.id === group.group_id) {
+                    g["attendees"] = [attendeGroup];
+                    g["attendeeGroup"] = groupState;
+                    g["done"] = true;
+                    break;
+                }
+            }
+            self.finishProcessing();
+        }(this, data));
+    }
+
+    finishProcessing() {
+        let attendees = []
+        let groupState = {}
+        for (let group of this.groupLoading) {
+            if (!group.done) {
+                return;
+            }
+            attendees.push.apply(attendees, group.attendees);
+            Object.assign(groupState, group.groupState);
+        }
+
+        // if every group has been processed, join and update state
+        this.setState({
+            attendees: attendees,
+            groupState: groupState,
         });
     }
 
@@ -103,15 +160,35 @@ class AttendanceInput extends AttendeeList {
     render() {
         return (
             <div>
-                <GroupSelect bsSize="sm" changeHandler={(groupId) => this.handleGroupChange(groupId)}/>
-                <TrainingSelect changeHandler={(training) => this.handleTrainingChange(training)}/>
-                <ListGroup>
-                    {this.state.attendees.map((a) =>
-                        <ListGroupItem key={a.attendee_id} onClick={() => this.updateAttendance(a.attendee_id)} active={this.state.attendance[a.attendee_id]}>{a.name}</ListGroupItem>
-                    )}
-                </ListGroup>
+                <div className="controlBar">
+                    <TrainingSelect changeHandler={(training) => this.handleTrainingChange(training)}/>
+                </div>
+                {this.state.attendees.map((g) =>
+                    <div className="lists" key={g.label.id}>
+                        <ListGroup>
+                            <ListGroupItem bsStyle="info" header={g.label.name} onClick={() => this.toggleGroup(g.label.id)}/>
+                        </ListGroup>
+                        <Collapse in={this.state.attendeeGroup[g.label.id]}>
+                            <ListGroup>
+                                {g.entries.map((a) =>
+                                    <ListGroupItem key={a.attendee_id} onClick={() => this.updateAttendance(a.attendee_id)} active={this.state.attendance[a.attendee_id]}>
+                                        {a.name}
+                                    </ListGroupItem>
+                                )}
+                            </ListGroup>
+                        </Collapse>
+                    </div>
+                )}
             </div>
         );
+    }
+
+    toggleGroup(id) {
+        let groupState = {...this.state.attendeeGroup};
+        groupState[id] = !groupState[id];
+        this.setState({
+            attendeeGroup: groupState,
+        });
     }
 }
 

@@ -9,8 +9,19 @@ export class GroupSelect extends Component {
         super(props);
         this.state = {
             groups: [],
-            selectedGroupId: null,
+            selectedGroupId: null
         };
+    }
+
+    getAttendeeById(data, id) {
+        let selected = null;
+        for (let d of data) {
+            if (d.attendee_id === id) {
+                selected = d;
+                break;
+            }
+        }
+        return selected;
     }
 
     handleGroupChange(groupId) {
@@ -43,13 +54,17 @@ export class GroupSelect extends Component {
                 break;
             }
         }
-
         return (
-            <DropdownButton bsStyle="default" title={selectedName} id="selectGroup" onSelect={(groupId) => this.handleGroupChange(groupId)} bsSize={this.props.bsSize ? this.props.bsSize : false }>
-                {this.state.groups.map((g) =>
-                    <MenuItem key={"group" + g.group_id} eventKey={g.group_id} active={g.group_id === this.state.selectedGroupId ? true : false}>{g.name}</MenuItem>
-                )}
-            </DropdownButton>
+            <div>
+                <DropdownButton bsStyle="default" title={selectedName} id="selectGroup"
+                        onSelect={(groupId) => this.handleGroupChange(groupId)}
+                        bsSize={this.props.bsSize ? this.props.bsSize : false}
+                    >
+                    {this.state.groups.map((g) =>
+                        <MenuItem key={"group" + g.group_id} eventKey={g.group_id} active={g.group_id === this.state.selectedGroupId ? true : false}>{g.name}</MenuItem>
+                    )}
+                </DropdownButton>
+            </div>
         );
     }
 }

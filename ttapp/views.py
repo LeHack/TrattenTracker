@@ -3,8 +3,7 @@ from dateutil.relativedelta import relativedelta
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.utils import timezone, dateparse
-from ttapp.models import Groups, TrainingSchedule, Attendance, Attendees, Payment, MonthlyBalance
+from ttapp.models import Groups, Attendance, Attendees, Payment, MonthlyBalance
 from ttapp.utils import get_trainings_in_month
 
 
@@ -17,8 +16,10 @@ def list_groups(request):
             "fee": g.monthly_fee
         })
 
-    # TODO: here we should use some external method to calculate the "next" group,
-    # read issue#10 for a detailed description regarding selecting the default group
+    # TODO: we need a group ordering method, which would order them using a predefined metric
+    # so we can have advanced group first, medium second and beginner third, regardless of their db ids, name etc.
+    groups = sorted(groups, key=lambda g: g["group_id"])
+    groups.reverse()
     selected_group = groups[0]["group_id"]
 
     return JsonResponse({"groups": groups, "selected": selected_group})
@@ -198,3 +199,6 @@ def get_session_status(request):
         "mode": "admin"
     }
     return JsonResponse(session)
+
+def update_attendance(request, attendee_id, training_time):
+    pass

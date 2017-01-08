@@ -1,3 +1,6 @@
 div.trainingSelect {
-	float:right;
+	text-align: right;
+}
+.lists .list-group {
+	margin: 0;
 }
