@@ -1,8 +1,9 @@
-from datetime import date
+from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from ttapp.models import Groups, CancelledTrainings, TrainingSchedule, Attendance, Attendees, Payment, MonthlyBalance
+from ttapp.models import Groups, TrainingSchedule, Attendance, Attendees, Payment, MonthlyBalance
 from ttapp.utils import get_trainings_in_month
 
 
@@ -53,15 +54,6 @@ def list_trainings(request, year=None, month=None):
     return JsonResponse({"schedules": schedules})
 
 
-def get_training_days_count(request, group_id, year, month):
-    group = get_object_or_404(Groups, pk=group_id)
-#     try:
-#         day_count = TrainingMonth.objects.get(group=group, year=year, month=month).day_count
-#     except TrainingMonth.DoesNotExist:
-#         day_count = len( get_trainings_in_month(month.year, month.month, group) )
-    return JsonResponse({"count": 0})
-
-
 def list_attendance(request, attendee_id, year=None, month=None):
     stWith = []
     if year is not None:
@@ -88,55 +80,76 @@ def list_attendance(request, attendee_id, year=None, month=None):
 
 def attendance_summary(request, attendee_id=None, group_id=None, year=None, month=None):
     ''' Calculates the attendance statistics for the given attendee or group '''
-    defaultMonthRange = 2 # 2 for testing, later switch to 6
-    attendeesSummary = {}
+    default_month_range = 2 # 2 for testing, later switch to 6
+    attendees_summary = {}
     attendees = []
     if group_id is not None:
         attendees = Attendees.objects.filter(group=get_object_or_404(Groups, pk=group_id)).all()
     elif attendee_id is not None:
         attendees.append(get_object_or_404(Attendees, pk=attendee_id))
 
-    groupTrainingDays = {}
+    group_training_days = {}
     months = []
     if year is not None and month is not None:
         months.append(date(year, month, 1))
     else:
         # use last 6 months, including current month
         t = date.today()
-        iterMonth = date(t.year, t.month, 1)
-        for _ in range(defaultMonthRange):
-            months.append(iterMonth)
-            iterMonth -= relativedelta(months = 1)
+        iter_month = date(t.year, t.month, 1)
+        for _ in range(default_month_range):
+            months.append(iter_month)
+            iter_month -= relativedelta(months = 1)
 
     groups = Groups.objects.all()
 
     for a in attendees:
         aKey = str(a.pk)
+        if a not in attendees_summary:
+            attendees_summary[aKey] = { "basic": { "count": 0, "total": 0 }, "extra": { "count": 0, "total": 0 } }
+
         for month in months:
+            if month not in group_training_days:
+                group_training_days[month] = {
+                    "all": []
+                }
+                for t in get_trainings_in_month(month.year, month.month):
+                    if t["date"] <= datetime.today():
+                        group_training_days[month]["all"].append(t)
+
+            common = {
+                "attendee": a,
+                "date__startswith": "%04d-%02d-" % (month.year, month.month)
+            }
             for g in groups:
-                # calculate only once for each group/month
-                if g.pk not in groupTrainingDays:
-                    groupTrainingDays[g.pk] = {}
-                if month not in groupTrainingDays[g.pk]:
-                    groupTrainingDays[g.pk][month] = len( getTrainingsInMonth(month.year, month.month, g) )
+                unscheduled = 0
+                if a.group == g:
+                    total = 0
+                    for t in group_training_days[month]["all"]:
+                        if t["group"] is None or t["group"] == g:
+                            total += 1
+                    attendees_summary[aKey]["basic"]["count"] += Attendance.objects.filter(
+                        # include "mixed" groups in basic attendance
+                        Q(training__isnull=False),
+                        Q(training__group__isnull = True) | Q(training__group=g),
+                        **common
+                    ).count()
+                    attendees_summary[aKey]["basic"]["total"] += total
+                else:
+                    total = 0
+                    for t in group_training_days[month]["all"]:
+                        if t["group"] == g:
+                            total += 1
+                    scheduled   = Attendance.objects.filter(Q(training__group=g), **common).count()
+                    unscheduled = Attendance.objects.filter(Q(training__isnull=True), **common).count()
+                    attendees_summary[aKey]["extra"]["count"] += scheduled + unscheduled
+                    attendees_summary[aKey]["extra"]["total"] += total + unscheduled
 
-                if aKey not in attendeesSummary:
-                    attendeesSummary[aKey] = { "basic": { "count": 0, "total": 0 }, "extra": { "count": 0, "total": 0 } }
-
-                atType = "basic" if a.group.pk == g.pk else "extra"
-                attendeesSummary[aKey][atType]["total"] +=  groupTrainingDays[g.pk][month]
-                attendeesSummary[aKey][atType]["count"] +=  Attendance.objects.filter(
-                    attendee=a,
-                    training__group=g,
-                    date__startswith= "%s-%s-" % (month.year, month.month)
-                ).count()
-
-        for atType in attendeesSummary[aKey]:
-            total = attendeesSummary[aKey][atType].pop("total", 0)
+        for atType in attendees_summary[aKey]:
+            total = attendees_summary[aKey][atType].pop("total", 0)
             if total > 0:
-                attendeesSummary[aKey][atType]["freq"] = "%d" % (100 * attendeesSummary[aKey][atType]["count"] / total)
+                attendees_summary[aKey][atType]["freq"] = "%d" % (100 * attendees_summary[aKey][atType]["count"] / total)
 
-    return JsonResponse({"stats": attendeesSummary})
+    return JsonResponse({"stats": attendees_summary})
 
 
 def list_payments(request, attendee_id, year):
