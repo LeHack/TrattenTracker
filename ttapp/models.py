@@ -30,10 +30,11 @@ class TrainingSchedule(models.Model):
         verbose_name_plural = "Grafik zajęć"
 
     def __str__(self):
-        return "%s: %s - %s" % (
+        return "%s: %s - %s (from %s)" % (
             calendar.day_name[self.dow],
             self.begin_time.strftime('%H:%M'),
-            self.end_time.strftime('%H:%M')
+            self.end_time.strftime('%H:%M'),
+            self.start_date.strftime('%Y-%m-%d')
         )
 
 
