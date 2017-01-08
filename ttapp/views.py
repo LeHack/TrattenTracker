@@ -3,6 +3,7 @@ from dateutil.relativedelta import relativedelta
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone, dateparse
 from ttapp.models import Groups, TrainingSchedule, Attendance, Attendees, Payment, MonthlyBalance
 from ttapp.utils import get_trainings_in_month
 
@@ -51,42 +52,40 @@ def list_trainings(request, year=None, month=None):
         months.append( today - relativedelta(months=1) );
         months.append( today );
 
-    id = 1
+    tmpId = 1
     for month in months:
         for t in get_trainings_in_month(month.year, month.month):
             if t["date"] - timedelta(minutes = 20) <= today:
+                t_date = t["date"].strftime("%Y-%m-%d");
+                t_time = t["date"].strftime("%H:%M")
                 training = {
                     # we need a custom id for these entries, this is used only in UI
-                    "id": "training" + str(id),
+                    "id": "training" + str(tmpId),
                     "training_id": t["training"].pk,
-                    "date": t["date"].strftime("%Y-%m-%d %H:%M"),
+                    "date": t_date,
+                    "time": t_time,
+                    "name": "%s %s" % (t_date, t_time),
                 }
                 trainings.append(training)
-                id += 1
+                tmpId += 1
     trainings = sorted(trainings, key=lambda s: s["date"])
     # by default select the last one
     return JsonResponse({"trainings": trainings[-6:], "selected": trainings[-1]["id"]})
 
 
-def list_attendance(request, attendee_id, year=None, month=None):
-    stWith = []
-    if year is not None:
-        stWith.append(str(year))
-    if month is not None:
-        stWith.append(str(month))
-    params = {}
-    if len(stWith) > 0:
-        params["date__startswith"] = "-".join(stWith)
-
-    data = Attendance.objects.filter(
-        attendee=get_object_or_404(Attendees, pk=attendee_id),
-        **params
-    ).all()
+def list_attendance(request, date, time, attendee_id=None):
+    params = {
+        "date__startswith": date,
+        "training__begin_time": time,
+    }
+    print(repr(params))
+    if attendee_id is not None:
+        params["attendee_id"] = get_object_or_404(Attendees, pk=attendee_id)
     attendance = []
-    for a in data:
+    for a in Attendance.objects.filter(**params).all():
         attendance.append({
+            "attendee_id": a.attendee.pk,
             "date": a.get_training_date(),
-            "group_id": a.get_training_group_id(),
             "sport_card": a.used_sport_card,
         })
     return JsonResponse({"attendance": attendance})
