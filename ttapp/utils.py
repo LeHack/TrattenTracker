@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta
 from django.db.models import Q
-from ttapp.models import CancelledTrainings, TrainingSchedule
+from ttapp.models import CancelledTrainings, TrainingSchedule, Groups
 
 
 def get_trainings_in_month(year, month, group=None):
@@ -33,3 +33,12 @@ def get_trainings_in_month(year, month, group=None):
         iterdate += timedelta(1)
 
     return sorted(trainings, key=lambda s: s["date"])
+
+'''
+Two types of payment based on Attendees has_sport_card attribute
+If true than attendance-based payment
+If false than monthly payment
+'''
+def get_monthly_payment(attendees):
+    if attendees.has_sport_card == True:
+        return attendees.group.monthly_fee

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from ttapp.models import Groups, TrainingSchedule, Attendees, CancelledTrainings
+from ttapp.models import Groups, TrainingSchedule, Attendees, CancelledTrainings, MonthlyBalance, Payment, Attendance
 
 
 class TrainingScheduleInline(admin.TabularInline):
@@ -29,3 +29,7 @@ class CancelledTrainingsAdmin(admin.ModelAdmin):
 admin.site.register(Groups, GroupsAdmin)
 admin.site.register(Attendees, AttendeesAdmin)
 admin.site.register(CancelledTrainings, CancelledTrainingsAdmin)
+
+admin.site.register(MonthlyBalance)
+admin.site.register(Payment)
+admin.site.register(Attendance)

@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.utils import timezone, dateparse
 import datetime
 from ttapp.models import Groups, CancelledTrainings, TrainingSchedule, Attendance, Attendees, Payment, MonthlyBalance
-
+from ttapp.utils import get_monthly_payment
 
 def seed_test_data():
     # first clear out the DB, note that removing a used group cascades trough *all* of the data in the system
@@ -225,3 +225,13 @@ def seed_test_data():
             for bal in at["balance"]:
                 MonthlyBalance(attendee=a, year=bal["year"], month=bal["month"], amount=bal["amount"]).save()
 
+
+class UtilsTestCase(TestCase):
+    def setUp(self):
+        group = Groups.objects.create(name="Grupa Początkująca", monthly_fee=80)
+        Attendees.objects.create(group=group, first_name='Piotr', last_name="Wayne", has_sport_card=True)
+
+    def test_get_monthly_payment(self):
+        attendee = Attendees.objects.filter(has_sport_card=True)[0]
+        cost = get_monthly_payment(attendee)
+        self.assertEqual(attendee.group.monthly_fee, cost)
