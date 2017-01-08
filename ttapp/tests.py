@@ -1,11 +1,14 @@
 from django.test import TestCase
 from django.utils import timezone, dateparse
-from ttapp.models import Groups, TrainingMonth, TrainingSchedule, Attendance, Attendees, Payment, MonthlyBalance
+import datetime
+from ttapp.models import Groups, CancelledTrainings, TrainingSchedule, Attendance, Attendees, Payment, MonthlyBalance
 
 
 def seed_test_data():
     # first clear out the DB, note that removing a used group cascades trough *all* of the data in the system
     Groups.objects.all().delete()
+    TrainingSchedule.objects.all().delete()
+
     # now create some test instances for every model
     g1 = Groups(name="Grupa Początkująca", monthly_fee=80)
     g1.save()
@@ -13,21 +16,38 @@ def seed_test_data():
     g2 = Groups(name="Grupa Zaawansowana", monthly_fee=110)
     g2.save()
 
-    g1t1 = TrainingSchedule(group=g1, dow=0, begin_time="19:00", end_time="20:00")
+    start_date = datetime.date(2016, 12,  1)
+    stop_date  = datetime.date(2016, 12, 10)
+    g1t1 = TrainingSchedule(group=g1, dow=0, begin_time="19:00", end_time="20:00", start_date=start_date, stop_date=stop_date)
     g1t1.save()
-    g1t2 = TrainingSchedule(group=g1, dow=3, begin_time="18:00", end_time="19:00")
+    g1t2 = TrainingSchedule(group=g1, dow=3, begin_time="18:00", end_time="19:00", start_date=start_date, stop_date=stop_date)
     g1t2.save()
-    g2t1 = TrainingSchedule(group=g2, dow=0, begin_time="20:00", end_time="21:00")
+    g2t1 = TrainingSchedule(group=g2, dow=0, begin_time="20:00", end_time="21:00", start_date=start_date, stop_date=stop_date)
     g2t1.save()
-    g2t2 = TrainingSchedule(group=g2, dow=1, begin_time="18:30", end_time="19:30")
+    g2t2 = TrainingSchedule(group=g2, dow=1, begin_time="18:30", end_time="19:30", start_date=start_date) # this is not an error
     g2t2.save()
-    g2t3 = TrainingSchedule(group=g2, dow=3, begin_time="19:00", end_time="20:00")
+    g2t3 = TrainingSchedule(group=g2, dow=3, begin_time="19:00", end_time="20:00", start_date=start_date, stop_date=stop_date)
     g2t3.save()
 
-    TrainingMonth(group=g1, year=2016, month=11, day_count=9).save()
-    TrainingMonth(group=g2, year=2016, month=11, day_count=11).save()
-    TrainingMonth(group=g1, year=2016, month=12, day_count=8).save()
-    TrainingMonth(group=g2, year=2016, month=12, day_count=11).save()
+    start_date = datetime.date(2016, 12, 12)
+    stop_date  = datetime.date(2017,  1,  8)
+    mixt1 = TrainingSchedule(dow=0, begin_time="19:00", end_time="20:00", start_date=start_date, stop_date=stop_date)
+    mixt1.save()
+    mixt2 = TrainingSchedule(dow=3, begin_time="18:30", end_time="19:30", start_date=start_date, stop_date=stop_date)
+    mixt2.save()
+
+    start_date = datetime.date(2017, 1, 9)
+    g1t1_17 = TrainingSchedule(group=g1, dow=0, begin_time="19:00", end_time="20:00", start_date=start_date)
+    g1t1_17.save()
+    g1t2_17 = TrainingSchedule(group=g1, dow=3, begin_time="18:00", end_time="19:00", start_date=start_date)
+    g1t2_17.save()
+    g2t1_17 = TrainingSchedule(group=g2, dow=0, begin_time="20:00", end_time="21:00", start_date=start_date)
+    g2t1_17.save()
+    g2t3_17 = TrainingSchedule(group=g2, dow=3, begin_time="19:00", end_time="20:00", start_date=start_date)
+    g2t3_17.save()
+
+    CancelledTrainings(schedule=mixt1, date = datetime.date(2016, 12, 26)).save()
+    CancelledTrainings(schedule=g2t2,  date = datetime.date(2016, 12, 27)).save()
 
     fakeData = [
         {
@@ -38,12 +58,13 @@ def seed_test_data():
             "attendance": [
                 { "training": g1t1, "date": "2016-12-05 19:01:00" },
                 { "training": g1t2, "date": "2016-12-08 18:01:00" },
-                { "training": g1t1, "date": "2016-12-12 19:01:00" },
-                { "training": g1t2, "date": "2016-12-15 18:31:00" },
-                { "training": g1t1, "date": "2016-12-19 19:01:00" },
-                { "training": g1t2, "date": "2016-12-22 18:31:00" },
-                { "training": g1t2, "date": "2016-12-29 18:31:00" },
-                { "training": g1t2, "date": "2017-01-02 19:01:00" },
+                { "training": mixt1, "date": "2016-12-12 19:01:00" },
+                { "training": mixt2, "date": "2016-12-15 18:31:00" },
+                { "training": mixt1, "date": "2016-12-19 19:01:00" },
+                { "training": mixt2, "date": "2016-12-22 18:31:00" },
+                { "training": mixt2, "date": "2016-12-29 18:31:00" },
+                { "training": mixt1, "date": "2017-01-02 19:01:00" },
+                { "training": mixt2, "date": "2017-01-05 18:31:00" },
             ],
             "payments": [
                 { "type": Payment.CASH,     "amount": 60,  "date": "2016-12-05 18:49:00" },
@@ -63,10 +84,10 @@ def seed_test_data():
             "attendance": [
                 { "training": g1t1, "date": "2016-12-05 19:01:00" },
                 { "training": g1t2, "date": "2016-12-08 18:01:00", "card": True },
-                { "training": g1t2, "date": "2016-12-15 18:31:00", "card": True },
-                { "training": g1t1, "date": "2016-12-19 19:01:00", "card": True },
-                { "training": g1t2, "date": "2016-12-29 18:31:00", "card": True },
-                { "training": g1t2, "date": "2017-01-02 19:01:00" },
+                { "training": mixt2, "date": "2016-12-15 18:31:00", "card": True },
+                { "training": mixt1, "date": "2016-12-19 19:01:00", "card": True },
+                { "training": mixt2, "date": "2016-12-29 18:31:00", "card": True },
+                { "training": mixt1, "date": "2017-01-02 19:01:00" },
             ],
             "payments": [
                 { "type": Payment.TRANSFER, "amount": 100, "date": "2016-11-27 11:15:00" },
@@ -87,10 +108,11 @@ def seed_test_data():
             "attendance": [
                 { "training": g1t1, "date": "2016-12-01 18:01:00", "card": True },
                 { "training": g1t1, "date": "2016-12-05 19:01:00", "card": True },
-                { "training": g1t1, "date": "2016-12-12 18:01:00", "card": True },
-                { "training": g1t2, "date": "2016-12-15 18:31:00", "card": True },
-                { "training": g1t1, "date": "2016-12-19 19:01:00", "card": True },
-                { "training": g1t2, "date": "2016-12-29 18:31:00", "card": True },
+                { "training": mixt1, "date": "2016-12-12 18:01:00", "card": True },
+                { "training": mixt2, "date": "2016-12-15 18:31:00", "card": True },
+                { "training": mixt1, "date": "2016-12-19 19:01:00", "card": True },
+                { "training": mixt2, "date": "2016-12-29 18:31:00", "card": True },
+                { "training": mixt2, "date": "2017-01-05 18:31:00", "card": True },
             ],
             "payments": [
                 { "type": Payment.TRANSFER, "amount": 100, "date": "2016-11-27 11:15:00" },
@@ -104,11 +126,11 @@ def seed_test_data():
             "sport_card": False,
             "attendance": [
                 { "training": g1t1, "date": "2016-12-05 19:01:00" },
-                { "training": g1t1, "date": "2016-12-12 18:01:00" },
-                { "training": g1t2, "date": "2016-12-15 18:31:00" },
-                { "training": g1t1, "date": "2016-12-19 19:01:00" },
-                { "training": g1t2, "date": "2016-12-29 18:31:00" },
-                { "training": g1t2, "date": "2017-01-02 19:01:00" },
+                { "training": mixt1, "date": "2016-12-12 18:01:00" },
+                { "training": mixt2, "date": "2016-12-15 18:31:00" },
+                { "training": mixt1, "date": "2016-12-19 19:01:00" },
+                { "training": mixt2, "date": "2016-12-29 18:31:00" },
+                { "training": mixt1, "date": "2017-01-02 19:01:00" },
             ],
         },
         {
@@ -117,18 +139,18 @@ def seed_test_data():
             "last_name": "Wayne",
             "sport_card": True,
             "attendance": [
-                { "training": g2t3, "date": "2016-12-01 19:01:00", "card": True },
-                { "training": g2t1, "date": "2016-12-05 20:00:00", "card": True },
-                { "training": g2t2, "date": "2016-12-06 18:31:00", "card": True },
-                { "training": g1t2, "date": "2016-12-08 18:02:00" },
-                { "training": g2t3, "date": "2016-12-08 19:02:00" },
-                { "training": g1t1, "date": "2016-12-12 19:01:00", "card": True },
-                { "training": g2t1, "date": "2016-12-12 20:01:00", "card": True },
-                { "training": g2t2, "date": "2016-12-13 18:31:00", "card": True },
-                { "training": g2t3, "date": "2016-12-15 18:29:00", "card": True },
-                { "training": g2t2, "date": "2016-12-19 18:31:00", "card": True },
-                { "training": g2t3, "date": "2016-12-22 18:29:00" },
-                { "training": g2t3, "date": "2016-12-29 18:31:00", "card": True },
+                { "training": g2t3,  "date": "2016-12-01 19:01:00", "card": True },
+                { "training": g2t1,  "date": "2016-12-05 20:00:00", "card": True },
+                { "training": g2t2,  "date": "2016-12-06 18:31:00", "card": True },
+                { "training": g1t2,  "date": "2016-12-08 18:02:00" },
+                { "training": g2t3,  "date": "2016-12-08 19:02:00" },
+                { "training": mixt1, "date": "2016-12-12 19:01:00", "card": True },
+                { "training": g2t2,  "date": "2016-12-13 18:31:00", "card": True },
+                { "training": mixt2, "date": "2016-12-15 18:29:00", "card": True },
+                { "training": mixt1, "date": "2016-12-19 18:31:00", "card": True },
+                { "training": mixt2, "date": "2016-12-22 18:29:00" },
+                { "training": mixt2, "date": "2016-12-29 18:31:00", "card": True },
+                { "training": g2t2,  "date": "2017-01-03 18:31:00", "card": True },
             ],
             "payments": [],
             "balance": [
@@ -142,21 +164,23 @@ def seed_test_data():
             "last_name": "Lee",
             "sport_card": True,
             "attendance": [
-                { "training": g1t2, "date": "2016-12-01 18:01:00", "card": True },
-                { "training": g2t3, "date": "2016-12-01 19:01:00", "card": True },
-                { "training": g1t1, "date": "2016-12-05 19:00:00", "card": True },
-                { "training": g2t1, "date": "2016-12-05 20:00:00", "card": True },
-                { "training": g2t2, "date": "2016-12-06 18:31:00", "card": True },
-                { "training": g1t2, "date": "2016-12-08 18:02:00", "card": True },
-                { "training": g2t3, "date": "2016-12-08 19:02:00", "card": True },
-                { "training": g2t1, "date": "2016-12-12 20:01:00", "card": True },
-                { "training": g2t2, "date": "2016-12-13 18:31:00", "card": True },
-                { "training": g2t3, "date": "2016-12-15 18:29:00", "card": True },
-                { "training": g2t2, "date": "2016-12-20 18:31:00", "card": True },
-                { "training": g2t3, "date": "2016-12-22 18:29:00", "card": True },
-                { "training": g2t3, "date": "2016-12-29 18:31:00", "card": True },
-                { "training": g1t2, "date": "2017-01-02 19:01:00", "card": True  },
-                { "training": g1t2, "date": "2017-01-03 18:30:15", "card": True  },
+                { "training": g1t2,  "date": "2016-12-01 18:01:00", "card": True },
+                { "training": g2t3,  "date": "2016-12-01 19:01:00", "card": True },
+                { "training": g1t1,  "date": "2016-12-05 19:00:00", "card": True },
+                { "training": g2t1,  "date": "2016-12-05 20:00:00", "card": True },
+                { "training": g2t2,  "date": "2016-12-06 18:31:00", "card": True },
+                { "training": g1t2,  "date": "2016-12-08 18:02:00", "card": True },
+                { "training": g2t3,  "date": "2016-12-08 19:02:00", "card": True },
+                { "training": mixt1, "date": "2016-12-12 19:01:00", "card": True },
+                { "training": g2t2,  "date": "2016-12-13 18:31:00", "card": True },
+                { "training": mixt2, "date": "2016-12-15 18:29:00", "card": True },
+                { "training": mixt1, "date": "2016-12-19 19:01:00", "card": True },
+                { "training": g2t2,  "date": "2016-12-20 18:31:00", "card": True },
+                { "training": mixt2, "date": "2016-12-22 18:29:00", "card": True },
+                { "training": mixt2, "date": "2016-12-29 18:31:00", "card": True },
+                { "training": mixt1, "date": "2017-01-02 19:01:00", "card": True },
+                { "training": g2t2,  "date": "2017-01-03 18:30:15", "card": True },
+                { "training": mixt2, "date": "2017-01-05 18:31:00", "card": True },
             ],
             "payments": [
                 { "type": Payment.CASH, "amount": 110, "date": "2016-11-12 11:15:00" },

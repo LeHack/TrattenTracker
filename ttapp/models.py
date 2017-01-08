@@ -9,36 +9,23 @@ class Groups(models.Model):
 
     class Meta:
         verbose_name = "grupa"
-        verbose_name_plural = "grupy"
+        verbose_name_plural = "Grupy"
 
     def __str__(self):
         return self.name
 
 
-class TrainingMonth(models.Model):
-    group     = models.ForeignKey(Groups, related_name='training_months', verbose_name="Grupa")
-    year      = models.IntegerField('rok')
-    month     = models.IntegerField('miesiąc')
-    day_count = models.IntegerField('liczba dni treningowych')
-
-    class Meta:
-        unique_together = (("group", "year", "month"),)
-        verbose_name = "miesiąc treningowy"
-        verbose_name_plural = "miesiące treningowe"
-
-    def __str__(self):
-        return "%s-%s" % (str(self.year), str(self.month))
-
-
 class TrainingSchedule(models.Model):
-    group               = models.ForeignKey(Groups, related_name='trainings', verbose_name="Grupa")
+    group               = models.ForeignKey(Groups, related_name='trainings', verbose_name="Grupa", null=True, blank=True)
     dow                 = models.IntegerField('dzień tygodnia')
     begin_time          = models.TimeField('czas rozpoczęcia')
     end_time            = models.TimeField('czas zakończenia')
     sport_card_allowed  = models.BooleanField('czy karty sportowe są dozwolone', default=True)
+    start_date          = models.DateField('od daty', default=timezone.now)
+    stop_date           = models.DateField('do daty', blank=True, null=True)
 
     class Meta:
-        unique_together = (("group", "dow", "begin_time"),)
+        unique_together = (("group", "dow", "begin_time", "start_date"),)
         verbose_name = "trening"
         verbose_name_plural = "Grafik zajęć"
 
@@ -48,6 +35,19 @@ class TrainingSchedule(models.Model):
             self.begin_time.strftime('%H:%M'),
             self.end_time.strftime('%H:%M')
         )
+
+
+class CancelledTrainings(models.Model):
+    schedule  = models.ForeignKey(TrainingSchedule, related_name='cancelled', verbose_name="Trening")
+    date      = models.DateField('dzień odwołanych zajęć', default=timezone.now)
+
+    class Meta:
+        unique_together = (("schedule", "date"),)
+        verbose_name = "odwołany trening"
+        verbose_name_plural = "Odwołane treningi"
+
+    def __str__(self):
+        return "%s [%s]" % (str(self.schedule), self.date.strftime('%Y-%m-%d %H:%M'))
 
 
 class Attendees(models.Model):
@@ -60,7 +60,7 @@ class Attendees(models.Model):
     class Meta:
         unique_together = (("group", "first_name", "last_name"),)
         verbose_name = "uczestnik"
-        verbose_name_plural = "uczestnicy"
+        verbose_name_plural = "Uczestnicy"
 
     def __str__(self):
         return "%s %s (%s)" % (self.first_name, self.last_name, str(self.group))
@@ -74,7 +74,7 @@ class Attendance(models.Model):
 
     class Meta:
         verbose_name = "obecność"
-        verbose_name_plural = "obecności"
+        verbose_name_plural = "Obecności"
 
     def get_training_group_id(self):
         training_group_id = self.attendee.group.pk
@@ -109,7 +109,7 @@ class Payment(models.Model):
 
     class Meta:
         verbose_name = "płatność"
-        verbose_name_plural = "płatności"
+        verbose_name_plural = "Płatności"
 
     def __str__(self):
         return "%s, %s: %s zł [%s]" % (str(self.attendee), self.date.strftime('%Y-%m-%d %H:%M'), str(self.amount), str(self.get_type_display()))
@@ -124,7 +124,7 @@ class MonthlyBalance(models.Model):
     class Meta:
         unique_together = (("attendee", "year", "month"),)
         verbose_name = "stan konta"
-        verbose_name_plural = "stany konta"
+        verbose_name_plural = "Bilans"
 
     def __str__(self):
         return "%s %s-%s: %s zł" % (str(self.attendee), str(self.year), str(self.month), str(self.amount))
