@@ -3,8 +3,8 @@ import utils from '../utils';
 
 
 class Session extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             session: { "user": null },
         };

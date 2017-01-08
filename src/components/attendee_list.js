@@ -5,8 +5,8 @@ import { DropdownButton, MenuItem, Table } from 'react-bootstrap';
 
 
 export class GroupSelect extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             groups: [],
             selectedGroupId: null,
@@ -45,7 +45,7 @@ export class GroupSelect extends Component {
         }
 
         return (
-            <DropdownButton bsStyle="default" title={selectedName} id="selectGroup" onSelect={(groupId) => this.handleGroupChange(groupId)}>
+            <DropdownButton bsStyle="default" title={selectedName} id="selectGroup" onSelect={(groupId) => this.handleGroupChange(groupId)} bsSize={this.props.bsSize ? this.props.bsSize : false }>
                 {this.state.groups.map((g) =>
                     <MenuItem key={"group" + g.group_id} eventKey={g.group_id} active={g.group_id === this.state.selectedGroupId ? true : false}>{g.name}</MenuItem>
                 )}
@@ -55,14 +55,14 @@ export class GroupSelect extends Component {
 }
 
 export class AttendeeList extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             attendees: [],
         };
     }
 
-    handleGroupChange(groupId, event) {
+    handleGroupChange(groupId) {
         utils.fetchAttendees(groupId, (data) => function(self, data){
             self.setState({
                 attendees: data.attendees
@@ -97,7 +97,7 @@ export class AttendeeList extends Component {
     render() {
         return (
             <div>
-                <GroupSelect changeHandler={(groupId, event) => this.handleGroupChange(groupId, event)}/>
+                <GroupSelect changeHandler={(groupId) => this.handleGroupChange(groupId)}/>
                 <Table responsive striped>
                     {this.renderHeaders()}
                     <tbody>
