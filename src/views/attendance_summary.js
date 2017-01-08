@@ -6,8 +6,8 @@ import utils from '../utils';
 import './attendance_summary.css';
 
 class AttendeeSummaryList extends AttendeeList {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             ...this.state,
             stats: {},

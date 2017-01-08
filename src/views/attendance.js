@@ -7,11 +7,11 @@ import utils from '../utils';
 import './attendance.css';
 
 class TrainingSelect extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             trainings: null,
-            selectedTraining: { id: null, date: "..." },
+            selectedTraining: { id: null, name: "..." },
         };
     }
 
@@ -29,11 +29,12 @@ class TrainingSelect extends Component {
     handleTrainingChange(trainingId) {
         if (trainingId !== this.state.selectedTraining.id) {
             // update our own state
+            let selected = this.getTrainingById(this.state.trainings, trainingId);
             this.setState({
-                selectedTraining: this.getTrainingById(this.state.trainings, trainingId),
+                selectedTraining: selected,
             });
             // and fire the parent handler
-            this.props.changeHandler(trainingId);
+            this.props.changeHandler(selected);
         }
     }
 
@@ -45,7 +46,7 @@ class TrainingSelect extends Component {
                 selectedTraining: selected,
             });
             // we must call this once on init
-            self.props.changeHandler(selected.id);
+            self.props.changeHandler(selected);
         }(this, data));
     }
 
@@ -53,12 +54,12 @@ class TrainingSelect extends Component {
         let contents = "";
         if (this.state.trainings != null) {
             contents = this.state.trainings.map((t) =>
-                <MenuItem key={"training" + t.id} eventKey={t.id} active={t.id === this.state.selectedTraining.id ? true : false}>{t.date}</MenuItem>
+                <MenuItem key={"training" + t.id} eventKey={t.id} active={t.id === this.state.selectedTraining.id ? true : false}>{t.name}</MenuItem>
             );
         }
         return (
             <div className="trainingSelect">
-                <DropdownButton bsStyle="default" title={this.state.selectedTraining.date} id="selectTraining" onSelect={(trainingId) => this.handleTrainingChange(trainingId)}>
+                <DropdownButton bsStyle="default" bsSize="sm" pullRight={true} title={this.state.selectedTraining.name} id="selectTraining" onSelect={(trainingId) => this.handleTrainingChange(trainingId)}>
                     {contents}
                 </DropdownButton>
             </div>
@@ -67,40 +68,46 @@ class TrainingSelect extends Component {
 }
 
 class AttendanceInput extends AttendeeList {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             ...this.state,
             attendance: {},
+            training: null,
         };
     }
 
     updateAttendance(id) {
-        console.log("clicked", id);
+        let updated = {...this.state.attendance};
+        updated[id] = !updated[id]
+        this.setState({
+            attendance: updated,
+        });
     }
 
-    handleGroupChange(groupId) {
-        super.handleGroupChange(groupId);
-        // now also fetch current attendance data for this group/training
-//        utils.fetchAttendees(groupId, (data) => function(self, data){
-//            self.setState({
-//                attendees: data.attendees
-//            });
-//        }(this, data));
-    }
-
-    handleTrainingChange(trainingId) {
-        console.log("Changed training to", trainingId);
+    handleTrainingChange(training) {
+        if (training != null) {
+            utils.fetchTrainingAttendance(training.date, training.time, (data) => function(self, data){
+                let attendance = {};
+                for (let att of data.attendance) {
+                    attendance[att.attendee_id] = true;
+                }
+                self.setState({
+                    attendance: attendance,
+                    training: training,
+                });
+            }(this, data));
+        }
     }
 
     render() {
         return (
             <div>
-                <GroupSelect changeHandler={(groupId) => this.handleGroupChange(groupId)}/>
-                <TrainingSelect changeHandler={(trainingId) => this.handleTrainingChange(trainingId)}/>
+                <GroupSelect bsSize="sm" changeHandler={(groupId) => this.handleGroupChange(groupId)}/>
+                <TrainingSelect changeHandler={(training) => this.handleTrainingChange(training)}/>
                 <ListGroup>
                     {this.state.attendees.map((a) =>
-                        <ListGroupItem key={a.attendee_id} onClick={() => this.updateAttendance(a.attendee_id)}>{a.name}</ListGroupItem>
+                        <ListGroupItem key={a.attendee_id} onClick={() => this.updateAttendance(a.attendee_id)} active={this.state.attendance[a.attendee_id]}>{a.name}</ListGroupItem>
                     )}
                 </ListGroup>
             </div>
