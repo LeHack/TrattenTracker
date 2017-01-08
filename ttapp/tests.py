@@ -16,7 +16,7 @@ def seed_test_data():
     g2 = Groups(name="Grupa Zaawansowana", monthly_fee=110)
     g2.save()
 
-    start_date = datetime.date(2016, 12,  1)
+    start_date = datetime.date(2016, 10,  1)
     stop_date  = datetime.date(2016, 12, 10)
     g1t1 = TrainingSchedule(group=g1, dow=0, begin_time="19:00", end_time="20:00", start_date=start_date, stop_date=stop_date)
     g1t1.save()
@@ -28,6 +28,12 @@ def seed_test_data():
     g2t2.save()
     g2t3 = TrainingSchedule(group=g2, dow=3, begin_time="19:00", end_time="20:00", start_date=start_date, stop_date=stop_date)
     g2t3.save()
+
+    # single mixed training on 31st of October
+    TrainingSchedule(
+        dow=0, begin_time="19:00", end_time="20:00",
+        start_date=datetime.date(2016, 10, 31), stop_date=datetime.date(2016, 10, 31)
+    ).save()
 
     start_date = datetime.date(2016, 12, 12)
     stop_date  = datetime.date(2017,  1,  8)
@@ -46,6 +52,9 @@ def seed_test_data():
     g2t3_17 = TrainingSchedule(group=g2, dow=3, begin_time="19:00", end_time="20:00", start_date=start_date)
     g2t3_17.save()
 
+    CancelledTrainings(schedule=g1t1,  date = datetime.date(2016, 10, 31)).save()
+    CancelledTrainings(schedule=g2t1,  date = datetime.date(2016, 10, 31)).save()
+    CancelledTrainings(schedule=g2t2,  date = datetime.date(2016, 11,  1)).save()
     CancelledTrainings(schedule=mixt1, date = datetime.date(2016, 12, 26)).save()
     CancelledTrainings(schedule=g2t2,  date = datetime.date(2016, 12, 27)).save()
 
