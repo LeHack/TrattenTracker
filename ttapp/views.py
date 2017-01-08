@@ -2,8 +2,8 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from ttapp.models import Groups, TrainingMonth, TrainingSchedule, Attendance, Attendees, Payment, MonthlyBalance
-from ttapp.utils import calculateTrainingDaysInMonth
+from ttapp.models import Groups, CancelledTrainings, TrainingSchedule, Attendance, Attendees, Payment, MonthlyBalance
+from ttapp.utils import get_trainings_in_month
 
 
 def list_groups(request):
@@ -38,7 +38,8 @@ def list_attendees(request, group_id=None):
     return JsonResponse({"attendees": data})
 
 
-def list_schedules(request):
+def list_trainings(request, year=None, month=None):
+    ''' List all trainings from all groups for the given month and automatically select the closest one (see issue#10) '''
     schedules = []
     for ts in TrainingSchedule.objects.all():
         schedules.append({
@@ -54,7 +55,11 @@ def list_schedules(request):
 
 def get_training_days_count(request, group_id, year, month):
     group = get_object_or_404(Groups, pk=group_id)
-    return JsonResponse({"count": calculateTrainingDaysInMonth(group, year, month)})
+#     try:
+#         day_count = TrainingMonth.objects.get(group=group, year=year, month=month).day_count
+#     except TrainingMonth.DoesNotExist:
+#         day_count = len( get_trainings_in_month(month.year, month.month, group) )
+    return JsonResponse({"count": 0})
 
 
 def list_attendance(request, attendee_id, year=None, month=None):
@@ -113,7 +118,7 @@ def attendance_summary(request, attendee_id=None, group_id=None, year=None, mont
                 if g.pk not in groupTrainingDays:
                     groupTrainingDays[g.pk] = {}
                 if month not in groupTrainingDays[g.pk]:
-                    groupTrainingDays[g.pk][month] = calculateTrainingDaysInMonth(g, month.year, month.month)
+                    groupTrainingDays[g.pk][month] = len( getTrainingsInMonth(month.year, month.month, g) )
 
                 if aKey not in attendeesSummary:
                     attendeesSummary[aKey] = { "basic": { "count": 0, "total": 0 }, "extra": { "count": 0, "total": 0 } }

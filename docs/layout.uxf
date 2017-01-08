@@ -28,8 +28,8 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>50</x>
-      <y>190</y>
+      <x>60</x>
+      <y>210</y>
       <w>110</w>
       <h>70</h>
     </coordinates>
@@ -42,7 +42,7 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>250</x>
+      <x>280</x>
       <y>230</y>
       <w>160</w>
       <h>120</h>
@@ -59,10 +59,10 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>250</x>
-      <y>70</y>
+      <x>280</x>
+      <y>60</y>
       <w>160</w>
-      <h>120</h>
+      <h>150</h>
     </coordinates>
     <panel_attributes>Training schedule
 --
@@ -70,35 +70,39 @@
 - dow
 - begin_time
 - end_time
-- sport_card_allowed</panel_attributes>
+- sport_card_allowed
+- start_date
+- stop_date
+</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>150</x>
-      <y>170</y>
-      <w>120</w>
-      <h>60</h>
+      <x>160</x>
+      <y>160</y>
+      <w>140</w>
+      <h>90</h>
     </coordinates>
-    <panel_attributes>lt=-&gt;</panel_attributes>
-    <additional_attributes>100.0;10.0;10.0;40.0</additional_attributes>
+    <panel_attributes>lt=-&gt;
+m2=0..1</panel_attributes>
+    <additional_attributes>120.0;10.0;10.0;70.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>150</x>
+      <x>160</x>
       <y>230</y>
-      <w>120</w>
-      <h>30</h>
+      <w>140</w>
+      <h>50</h>
     </coordinates>
     <panel_attributes>lt=-&gt;</panel_attributes>
-    <additional_attributes>100.0;10.0;10.0;10.0</additional_attributes>
+    <additional_attributes>120.0;10.0;10.0;30.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>500</x>
+      <x>530</x>
       <y>90</y>
       <w>180</w>
       <h>100</h>
@@ -114,20 +118,20 @@
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>400</x>
-      <y>110</y>
+      <x>430</x>
+      <y>100</y>
       <w>120</w>
       <h>50</h>
     </coordinates>
     <panel_attributes>lt=&lt;-
 m1=0..1
 </panel_attributes>
-    <additional_attributes>10.0;20.0;100.0;20.0</additional_attributes>
+    <additional_attributes>10.0;20.0;100.0;30.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>400</x>
+      <x>430</x>
       <y>150</y>
       <w>120</w>
       <h>110</h>
@@ -138,7 +142,7 @@ m1=0..1
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>500</x>
+      <x>530</x>
       <y>230</y>
       <w>190</w>
       <h>120</h>
@@ -155,7 +159,7 @@ m1=0..1
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>400</x>
+      <x>430</x>
       <y>270</y>
       <w>120</w>
       <h>30</h>
@@ -166,35 +170,33 @@ m1=0..1
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>30</x>
-      <y>330</y>
-      <w>140</w>
-      <h>110</h>
+      <x>40</x>
+      <y>80</y>
+      <w>150</w>
+      <h>70</h>
     </coordinates>
-    <panel_attributes>Training month
+    <panel_attributes>Cancelled Trainings
 --
-* group
-- year
-- month
-- day_count</panel_attributes>
+* training schedule
+- date</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>90</x>
-      <y>250</y>
-      <w>50</w>
-      <h>100</h>
+      <x>180</x>
+      <y>100</y>
+      <w>120</w>
+      <h>40</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
-m1=0..1</panel_attributes>
-    <additional_attributes>10.0;80.0;10.0;10.0</additional_attributes>
+m1=0..n</panel_attributes>
+    <additional_attributes>10.0;10.0;100.0;10.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>250</x>
+      <x>280</x>
       <y>420</y>
       <w>160</w>
       <h>100</h>
@@ -211,7 +213,7 @@ m1=0..1</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>310</x>
+      <x>340</x>
       <y>340</y>
       <w>50</w>
       <h>100</h>
