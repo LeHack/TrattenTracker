@@ -30,8 +30,7 @@ ol.breadcrumb {
         display: none;
     }
     .loginStatus {
-        font-size: .75em;
-        padding-right: 2%;
+        display: none;
     }
     .jumbotron h1, .jumbotron p {
         padding-left: 5%;

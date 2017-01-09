@@ -31,5 +31,19 @@ module.exports = {
     },
     fetchTrainings: function(resultHandler) {
         fetchFromBackend('/rest/trainings', resultHandler);
+    },
+    sendAttendance: function(attendeeId, training) {
+        var form = new FormData();
+        form.append("attendee_id", attendeeId);
+        form.append("training_id", training.training_id);
+        form.append("training_time", training.name);
+        fetch('/rest/attendance', {
+            method: 'POST',
+            body: form,
+        }).then(function(response) {
+            // nothing special here
+        }).catch(function(ex) {
+            console.log('Sending attendance data failed with', ex);
+        });
     }
 };

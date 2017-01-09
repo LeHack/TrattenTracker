@@ -3,7 +3,9 @@ from dateutil.relativedelta import relativedelta
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from ttapp.models import Groups, Attendance, Attendees, Payment, MonthlyBalance
+from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone, dateparse
+from ttapp.models import Groups, Attendance, Attendees, Payment, MonthlyBalance, TrainingSchedule
 from ttapp.utils import get_trainings_in_month
 
 
@@ -79,7 +81,6 @@ def list_attendance(request, date, time, attendee_id=None):
         "date__startswith": date,
         "training__begin_time": time,
     }
-    print(repr(params))
     if attendee_id is not None:
         params["attendee_id"] = get_object_or_404(Attendees, pk=attendee_id)
     attendance = []
@@ -200,5 +201,19 @@ def get_session_status(request):
     }
     return JsonResponse(session)
 
-def update_attendance(request, attendee_id, training_time):
-    pass
+# TODO: fix this properly by implementing CSRF token handling in the front
+@csrf_exempt
+def update_attendance(request, *args, **kwargs):
+    if request.method == "POST":
+        params = {
+            "attendee": get_object_or_404(Attendees, pk=request.POST["attendee_id"]),
+            "training": get_object_or_404(TrainingSchedule, pk=request.POST["training_id"]),
+            "date": timezone.make_aware(dateparse.parse_datetime(request.POST["training_time"]))
+        }
+
+        try:
+            Attendance.objects.get(**params)
+        except Attendance.DoesNotExist:
+            Attendance(**params).save()
+
+    return JsonResponse({"request": "OK"})

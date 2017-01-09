@@ -79,14 +79,14 @@ class AttendanceInput extends Component {
         this.groupLoading = [];
     }
 
-    updateAttendance(id) {
+    updateAttendance(attendeeId) {
         let updated = {...this.state.attendance};
-        updated[id] = !updated[id]
+        updated[attendeeId] = !updated[attendeeId]
         this.setState({
             attendance: updated,
         });
         // now send the data to backend
-        // ...
+        utils.sendAttendance(attendeeId, this.state.training);
     }
 
     componentDidMount() {
