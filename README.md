@@ -1,7 +1,7 @@
 # TrattenTracker
 Training attendance tracker with the option to calculate attendance-based monthly fees and provide it online for all students.
 
-Autorzy: Łukasz Hejnak, Łukasz Malinowski
+Autorzy: Łukasz Hejnak, Piotr Skurski, Łukasz Malinowski
 
 ## Instalacja (za pierwszym razem, później kroki 3, 5, 8, 10, 11):
 0. Upewnij się, że masz python3 (3.4.3) oraz pip 7.1.0 zainstalowany (i skonfigurowany by używał python3)
