@@ -58,7 +58,7 @@ export class GroupSelect extends Component {
             <div>
                 <DropdownButton bsStyle="default" title={selectedName} id="selectGroup"
                         onSelect={(groupId) => this.handleGroupChange(groupId)}
-                        bsSize={this.props.bsSize ? this.props.bsSize : false}
+                        bsSize={this.props.bsSize ? this.props.bsSize : null}
                     >
                     {this.state.groups.map((g) =>
                         <MenuItem key={"group" + g.group_id} eventKey={g.group_id} active={g.group_id === this.state.selectedGroupId ? true : false}>{g.name}</MenuItem>
