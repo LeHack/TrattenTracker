@@ -20,7 +20,7 @@ class AttendeeSummaryList extends AttendeeList {
             self.setState({
                 stats: data.stats
             });
-        }(this, data));
+        }(this, data), this.props.fatalError);
     }
 
     renderHeaders() {
@@ -56,12 +56,20 @@ class AttendeeSummaryList extends AttendeeList {
 
 
 class AttendanceSummary extends Session {
+    constructor(props) {
+        super(props);
+        this.state = {
+            session: { "user": null },
+            errorStatus: false,
+        };
+    }
+
     render() {
         let title = (<p>Zestawienie obecności</p>);
         return (
             <div>
                 <AppHeader viewJSX={title} session={this.state.session} location="Zestawienie obecności" />
-                <AttendeeSummaryList />
+                {this.state.errorStatus ? <utils.Error reason="Nie można nawiązać połączenia z serwerem" /> : <AttendeeSummaryList fatalError={(error) => this.fatalErrorHandler(error)}/>}
             </div>
         );
     }

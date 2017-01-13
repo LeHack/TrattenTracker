@@ -43,7 +43,7 @@ export class GroupSelect extends Component {
             });
             // we must call this once on init
             self.props.changeHandler(data.selected);
-        }(this, data));
+        }(this, data), this.props.fatalError);
     }
 
     render() {
@@ -82,7 +82,7 @@ export class AttendeeList extends Component {
             self.setState({
                 attendees: data.attendees
             });
-        }(this, data));
+        }(this, data), this.fatalErrorHandler);
     }
 
     renderHeaders() {
@@ -108,11 +108,16 @@ export class AttendeeList extends Component {
             </tr>
         );
     }
-    
+
+    fatalErrorHandler(error) {
+        console.log("Debug", error);
+        this.setState({errorStatus: true});
+    }
+
     render() {
         return (
             <div>
-                <GroupSelect changeHandler={(groupId) => this.handleGroupChange(groupId)}/>
+                <GroupSelect changeHandler={(groupId) => this.handleGroupChange(groupId)} fatalError={(error) => this.fatalErrorHandler(error)}/>
                 <Table responsive striped>
                     {this.renderHeaders()}
                     <tbody>
