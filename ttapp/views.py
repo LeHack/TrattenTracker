@@ -1,3 +1,4 @@
+import json
 from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q
@@ -205,15 +206,30 @@ def get_session_status(request):
 @csrf_exempt
 def update_attendance(request, *args, **kwargs):
     if request.method == "POST":
-        params = {
-            "attendee": get_object_or_404(Attendees, pk=request.POST["attendee_id"]),
-            "training": get_object_or_404(TrainingSchedule, pk=request.POST["training_id"]),
-            "date": timezone.make_aware(dateparse.parse_datetime(request.POST["training_time"]))
-        }
+        attendance    = json.loads(request.POST["attendance"]);
+        training      = get_object_or_404(TrainingSchedule, pk=request.POST["training_id"])
+        training_time = timezone.make_aware(dateparse.parse_datetime(request.POST["training_time"]))
+        for att in attendance:
+            params = {
+                "attendee": get_object_or_404(Attendees, pk=att["attendee_id"]),
+                "training": training,
+                "date": training_time,
+            }
 
-        try:
-            Attendance.objects.get(**params)
-        except Attendance.DoesNotExist:
-            Attendance(**params).save()
+            if att["is_present"]:
+                try:
+                    a = Attendance.objects.get(**params)
+                    a.used_sport_card = att["has_sport_card"]
+                    a.save()
+                except Attendance.DoesNotExist:
+                    params["used_sport_card"] = att["has_sport_card"]
+                    Attendance(**params).save()
+            else:
+                try:
+                    # try removing it
+                    Attendance.objects.filter(**params).all().delete()
+                except Attendance.DoesNotExist:
+                    # ignore if it doesn't exist
+                    pass
 
     return JsonResponse({"request": "OK"})

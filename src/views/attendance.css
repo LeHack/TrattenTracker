@@ -1,6 +1,15 @@
+.controlBar {
+   position: relative;
+}
 div.trainingSelect {
-	text-align: right;
+	position: absolute;
+    bottom: 0;
+    right: 0;
 }
 .lists .list-group {
 	margin: 0;
+}
+.saveControls {
+	width: 20%;
+	min-width: 200px;
 }
