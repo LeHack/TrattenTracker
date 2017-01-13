@@ -357,7 +357,7 @@ class Attendance extends Session {
         let title = (<p>Wprowadzanie obecności</p>);
         return (
             <div>
-                <AppHeader viewJSX={title} session={this.state.session} location="Obecności" />
+                <AppHeader viewJSX={title} session={this.state.session} routes={this.props.routes} params={this.props.params} showBreadcrumbs />
                 {this.state.errorStatus ? <utils.Error reason="Nie można nawiązać połączenia z serwerem" /> : <AttendanceInput fatalError={(error) => this.fatalErrorHandler(error)}/>}
             </div>
         );

@@ -21,8 +21,14 @@ div.jumbotron {
     font-weight: 600;
 }
 
-ol.breadcrumb {
+.breadcrumbs {
     width: 100%;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    list-style: outside none none;
+    margin-bottom: 20px;
+    padding: 8px 15px;
+    color: #777;
 }
 
 @media (max-width: 650px) {
@@ -35,7 +41,7 @@ ol.breadcrumb {
     .jumbotron h1, .jumbotron p {
         padding-left: 5%;
     }
-    ol.breadcrumb {
+    .breadcrumbs {
         margin: 0;
     }
 }

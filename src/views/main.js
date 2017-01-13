@@ -67,7 +67,7 @@ class Main extends Session {
         );
         return (
             <div>
-                <AppHeader viewJSX={navIntro} session={this.state.session}/>
+                <AppHeader viewJSX={navIntro} session={this.state.session} routes={this.props.routes} params={this.props.params} />
                 <AppNavigation mode={this.state.session.mode}/>
             </div>
         );
