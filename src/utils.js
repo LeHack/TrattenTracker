@@ -49,6 +49,9 @@ module.exports = {
     fetchTrainings: function(resultHandler, errHandler) {
         fetchFromBackend('/rest/trainings', resultHandler, errHandler);
     },
+    fetchPayments: function(attendeeId, resultHandler, errHandler) {
+        fetchFromBackend('/rest/payments/' + attendeeId, resultHandler, errHandler);
+    },
     fetchOutstanding: function(attendeeId, resultHandler, errHandler) {
         fetchFromBackend('/rest/outstanding/attendee/' + attendeeId, resultHandler, errHandler);
     },

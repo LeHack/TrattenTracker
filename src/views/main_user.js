@@ -53,6 +53,22 @@ class Summary extends Component {
 }
 
 class UserAttendance extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            details: [],
+        };
+    }
+
+    componentDidMount() {
+        let aid = this.props.user.attendee_id;
+        utils.fetchAttendanceSplitSummary(aid, (data) => function(self, aid, data){
+            self.setState({
+                details: data.stats[aid],
+            });
+        }(this, aid, data), this.props.fatalError);
+    }
+
     render() {
         return (
             <Table responsive striped>
@@ -64,51 +80,57 @@ class UserAttendance extends Component {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                    </tr>
+                    {this.state.details.map((det) =>
+                        <tr key={det.month}>
+                            <td>{det.month}</td>
+                            <td>{det.basic.count} ({det.basic.freq}%)</td>
+                            <td>{det.extra.count} ({det.extra.freq}%)</td>
+                        </tr>
+                    )}
                 </tbody>
             </Table>
         );
-//      {this.state.details.map((det) =>
-//      <tr key={det.month}>
-//          <td>{det.month}</td>
-//          <td>{det.basic.count} ({det.basic.freq}%)</td>
-//          <td>{det.extra.count} ({det.extra.freq}%)</td>
-//      </tr>
-//  )}
     }
 }
 
 class UserPayments extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            payments: [],
+        };
+    }
+
+    componentDidMount() {
+        let aid = this.props.user.attendee_id;
+        utils.fetchPayments(aid, (data) => function(self, aid, data){
+            self.setState({
+                payments: data.payments,
+            });
+        }(this, aid, data), this.props.fatalError);
+    }
+
     render() {
         return (
             <Table responsive striped>
                 <thead>
                     <tr>
-                        <th>Miesiąc</th>
+                        <th>Data</th>
                         <th>Rodzaj</th>
                         <th>Kwota</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                    </tr>
+                    {this.state.payments.map((det) =>
+                        <tr key={det.date}>
+                            <td>{det.date}</td>
+                            <td>{det.type}</td>
+                            <td>{det.amount} zł</td>
+                        </tr>
+                    )}
                 </tbody>
             </Table>
         );
-//      {this.state.details.map((det) =>
-//      <tr key={det.month}>
-//          <td>{det.month}</td>
-//          <td>{det.basic.count} ({det.basic.freq}%)</td>
-//          <td>{det.extra.count} ({det.extra.freq}%)</td>
-//      </tr>
-//  )}
     }
 }
 

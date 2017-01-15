@@ -105,11 +105,11 @@ def attendance_summary(request, attendee_id=None, group_id=None, split_by_month=
     return JsonResponse({"stats": calculate_attendance_summary(attendees, split_by_month=split_by_month, month_range=2)}) # later remove to switch back to 6
 
 
-def list_payments(request, attendee_id, year):
+def list_payments(request, attendee_id):
+    # get last 6 payments for this attendee
     data = Payment.objects.filter(
-        attendee=get_object_or_404(Attendees, pk=attendee_id),
-        date__startswith=str(year)
-    ).all()
+        attendee=get_object_or_404(Attendees, pk=attendee_id)
+    ).order_by('-date').all()[:6]
     payments = []
     for p in data:
         payments.append({
@@ -139,7 +139,7 @@ def get_current_outstanding(request, attendee_id=None, group_id=None):
 # TODO: Implement session handling and make this dynamic
 def get_session_status(request):
     session = {
-        "attendee_id": 11,
+        "attendee_id": 6,
         "status": "LoggedIn",
         "user": "LeHack",
         "role": "user"
