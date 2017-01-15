@@ -2,7 +2,8 @@ from django.test import TestCase
 from django.utils import timezone, dateparse
 import datetime
 from ttapp.models import Groups, CancelledTrainings, TrainingSchedule, Attendance, Attendees, Payment, MonthlyBalance
-from ttapp.utils import get_monthly_payment
+from ttapp.utils import PaymentUtil
+
 
 def seed_test_data():
     # first clear out the DB, note that removing a used group cascades trough *all* of the data in the system
@@ -227,11 +228,19 @@ def seed_test_data():
 
 
 class UtilsTestCase(TestCase):
-    def setUp(self):
-        group = Groups.objects.create(name="Grupa Początkująca", monthly_fee=80)
-        Attendees.objects.create(group=group, first_name='Piotr', last_name="Wayne", has_sport_card=True)
+    payUtil = PaymentUtil()
 
-    def test_get_monthly_payment(self):
+    def setUp(self):
+        seed_test_data()
+
+    def test_get_monthly_payment__should_return_fixed_payment(self):
+        time = datetime.date(2017, 1, 1)
         attendee = Attendees.objects.filter(has_sport_card=True)[0]
-        cost = get_monthly_payment(attendee)
+        cost = self.payUtil.get_monthly_payment(time.year, time.month, attendee)
         self.assertEqual(attendee.group.monthly_fee, cost)
+
+    def test_get_monthly_payment__should_calculate_payment(self):
+        time = datetime.date(2017, 1, 1)
+        attendee = Attendees.objects.filter(has_sport_card=False)[0]
+        cost = self.payUtil.get_monthly_payment(time.year, time.month, attendee)
+        self.assertEqual(60, cost)

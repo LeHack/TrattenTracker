@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta
 from django.db.models import Q
-from ttapp.models import CancelledTrainings, TrainingSchedule, Groups
+from ttapp.models import CancelledTrainings, TrainingSchedule, Groups, Attendance
 
 
 def get_trainings_in_month(year, month, group=None):
@@ -36,9 +36,31 @@ def get_trainings_in_month(year, month, group=None):
 
 '''
 Two types of payment based on Attendees has_sport_card attribute
-If true than attendance-based payment
-If false than monthly payment
+If has_sport_card == true than attendance-based payment
+If has_sport_card == false than monthly payment
 '''
-def get_monthly_payment(attendees):
-    if attendees.has_sport_card == True:
-        return attendees.group.monthly_fee
+# todo: total current balance calculation
+class PaymentUtil:
+    money_from_sport_card = 10   # 10zl
+
+    '''
+    Utility method for getting attendee month payment
+    '''
+    def get_monthly_payment(self, year, month, attendee):
+        if attendee.has_sport_card:
+            return attendee.group.monthly_fee
+        # Logic for calculate monthly payment
+        return self.monthly_payment_based_on_attendance(year, month, attendee)
+
+    def monthly_payment_based_on_attendance(self, year, month, attendee):
+        start = date(year, month, 1)
+        attendence_count = Attendance.objects.filter(attendee=attendee,
+                                                     date__gte=start,
+                                                     date__lte=self.last_day_of_month(month)).count()
+        return attendee.group.monthly_fee - (attendence_count * self.money_from_sport_card)
+
+    @staticmethod
+    def last_day_of_month(month):
+        time = datetime.now().replace(month=month)
+        next_month = time.replace(day=28) + timedelta(days=4)  # this will never fail
+        return next_month - timedelta(days=next_month.day)
