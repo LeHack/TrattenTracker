@@ -37,6 +37,9 @@ module.exports = {
     fetchGroupAttendanceSummary: function(groupId, resultHandler, errHandler) {
         fetchFromBackend('/rest/attendance/group/summary/' + groupId, resultHandler, errHandler);
     },
+    fetchAttendanceSplitSummary: function(attendeeId, resultHandler, errHandler) {
+        fetchFromBackend('/rest/attendance/attendee/split-summary/' + attendeeId, resultHandler, errHandler);
+    },
     fetchTrainingAttendance: function(date, time, resultHandler, errHandler) {
         fetchFromBackend('/rest/attendance/' + date + '/' + time, resultHandler, errHandler);
     },

@@ -1,13 +1,12 @@
 import json
 from datetime import date, datetime, timedelta
-from dateutil.relativedelta import relativedelta
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone, dateparse
 from ttapp.models import Groups, Attendance, Attendees, Payment, MonthlyBalance, TrainingSchedule
-from ttapp.utils import get_trainings_in_month
+from ttapp.utils import get_trainings_in_month, calculate_attendance_summary
 
 
 def list_groups(request):
@@ -94,78 +93,15 @@ def list_attendance(request, date, time, attendee_id=None):
     return JsonResponse({"attendance": attendance})
 
 
-def attendance_summary(request, attendee_id=None, group_id=None, year=None, month=None):
+def attendance_summary(request, attendee_id=None, group_id=None, split_by_month=False):
     ''' Calculates the attendance statistics for the given attendee or group '''
-    default_month_range = 2 # 2 for testing, later switch to 6
-    attendees_summary = {}
     attendees = []
     if group_id is not None:
         attendees = Attendees.objects.filter(group=get_object_or_404(Groups, pk=group_id)).all()
     elif attendee_id is not None:
         attendees.append(get_object_or_404(Attendees, pk=attendee_id))
 
-    group_training_days = {}
-    months = []
-    if year is not None and month is not None:
-        months.append(date(year, month, 1))
-    else:
-        # use last 6 months, including current month
-        t = date.today()
-        iter_month = date(t.year, t.month, 1)
-        for _ in range(default_month_range):
-            months.append(iter_month)
-            iter_month -= relativedelta(months = 1)
-
-    groups = Groups.objects.all()
-
-    for a in attendees:
-        aKey = str(a.pk)
-        if a not in attendees_summary:
-            attendees_summary[aKey] = { "basic": { "count": 0, "total": 0 }, "extra": { "count": 0, "total": 0 } }
-
-        for month in months:
-            if month not in group_training_days:
-                group_training_days[month] = {
-                    "all": []
-                }
-                for t in get_trainings_in_month(month.year, month.month):
-                    if t["date"] <= datetime.today():
-                        group_training_days[month]["all"].append(t)
-
-            common = {
-                "attendee": a,
-                "date__startswith": "%04d-%02d-" % (month.year, month.month)
-            }
-            for g in groups:
-                unscheduled = 0
-                if a.group == g:
-                    total = 0
-                    for t in group_training_days[month]["all"]:
-                        if t["group"] is None or t["group"] == g:
-                            total += 1
-                    attendees_summary[aKey]["basic"]["count"] += Attendance.objects.filter(
-                        # include "mixed" groups in basic attendance
-                        Q(training__isnull=False),
-                        Q(training__group__isnull = True) | Q(training__group=g),
-                        **common
-                    ).count()
-                    attendees_summary[aKey]["basic"]["total"] += total
-                else:
-                    total = 0
-                    for t in group_training_days[month]["all"]:
-                        if t["group"] == g:
-                            total += 1
-                    scheduled   = Attendance.objects.filter(Q(training__group=g), **common).count()
-                    unscheduled = Attendance.objects.filter(Q(training__isnull=True), **common).count()
-                    attendees_summary[aKey]["extra"]["count"] += scheduled + unscheduled
-                    attendees_summary[aKey]["extra"]["total"] += total + unscheduled
-
-        for atType in attendees_summary[aKey]:
-            total = attendees_summary[aKey][atType].pop("total", 0)
-            if total > 0:
-                attendees_summary[aKey][atType]["freq"] = "%d" % (100 * attendees_summary[aKey][atType]["count"] / total)
-
-    return JsonResponse({"stats": attendees_summary})
+    return JsonResponse({"stats": calculate_attendance_summary(attendees, split_by_month=split_by_month, month_range=2)}) # later remove to switch back to 6
 
 
 def list_payments(request, attendee_id, year):

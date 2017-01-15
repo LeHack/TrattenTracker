@@ -3,6 +3,16 @@ import utils from '../utils';
 
 import { DropdownButton, MenuItem, Table } from 'react-bootstrap';
 
+export function getAttendeeById(data, id) {
+    let selected = null;
+    for (let d of data) {
+        if (d.attendee_id === id) {
+            selected = d;
+            break;
+        }
+    }
+    return selected;
+}
 
 export class GroupSelect extends Component {
     constructor(props) {
@@ -11,17 +21,6 @@ export class GroupSelect extends Component {
             groups: [],
             selectedGroupId: null
         };
-    }
-
-    getAttendeeById(data, id) {
-        let selected = null;
-        for (let d of data) {
-            if (d.attendee_id === id) {
-                selected = d;
-                break;
-            }
-        }
-        return selected;
     }
 
     handleGroupChange(groupId) {
@@ -114,6 +113,10 @@ export class AttendeeList extends Component {
         this.setState({errorStatus: true});
     }
 
+    renderExtraComponents() {
+        return (<span></span>);
+    }
+
     render() {
         return (
             <div>
@@ -124,6 +127,7 @@ export class AttendeeList extends Component {
                         {this.state.attendees.map((a) => this.renderBody(a))}
                     </tbody>
                 </Table>
+                {this.renderExtraComponents()}
             </div>
         );
     }

@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^attendance/(?P<attendee_id>[0-9]+)/(?P<date>[0-9\-]+)/(?P<time>[0-9:]+)$', views.list_attendance, name='list_attendance_single'),
     url(r'^attendance/group/summary/(?P<group_id>[0-9]+)$', views.attendance_summary, name='attendance_summary_6months'),
     url(r'^attendance/attendee/summary/(?P<attendee_id>[0-9]+)$', views.attendance_summary, name='group_attendance_summary_6months'),
+    url(r'^attendance/attendee/split-summary/(?P<attendee_id>[0-9]+)$', views.attendance_summary, {'split_by_month': True}, name='attendance_summary_6months_split_by_month'),
     url(r'^attendance/attendee/summary/(?P<attendee_id>[0-9]+)/(?P<year>[0-9]+)/(?P<month>[0-9]+)$', views.attendance_summary, name='attendance_summary_year_month'),
     url(r'^payments/(?P<attendee_id>[0-9]+)/(?P<year>[0-9]+)$', views.list_payments, name='list_payments'),
     url(r'^balance/(?P<attendee_id>[0-9]+)$', views.get_last_balance, name='get_last_balance'),

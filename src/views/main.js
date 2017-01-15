@@ -4,6 +4,7 @@ import AppHeader from '../components/header';
 import { Nav } from 'react-bootstrap';
 import Session from '../components/session';
 import cfg from '../route_config';
+import utils from '../utils';
 
 /*
 * http://usejsdoc.org/
@@ -28,7 +29,7 @@ function AppNavigation(props) {
             },
             {
                 "label": "Płatności",
-                "description": "Wprowadzanie nowo otrzmanych płatności.",
+                "description": "Wprowadzanie nowo otrzymanych płatności.",
                 "link": cfg.routes.payment
             },
             {
@@ -68,7 +69,7 @@ class Main extends Session {
         return (
             <div>
                 <AppHeader viewJSX={navIntro} session={this.state.session} routes={this.props.routes} params={this.props.params} />
-                <AppNavigation mode={this.state.session.mode}/>
+                {this.state.errorStatus ? <utils.Error reason="Nie można nawiązać połączenia z serwerem" /> : <AppNavigation mode={this.state.session.mode} fatalError={(error) => this.fatalErrorHandler(error)}/>}
             </div>
         );
     }

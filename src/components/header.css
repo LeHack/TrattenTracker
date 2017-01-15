@@ -8,8 +8,8 @@ div.jumbotron {
     padding-bottom: 10px;
     margin: 0;
 }
-.jumbotron h1 { padding-left: 20%; }
-.jumbotron p { padding-left: 20%; }
+.jumbotron h1 { padding-left: 10%; }
+.jumbotron p { padding-left: 10%; }
 
 .loginStatus {
     float: right;
