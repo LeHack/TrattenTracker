@@ -46,6 +46,9 @@ module.exports = {
     fetchTrainingAttendance: function(date, time, resultHandler, errHandler) {
         fetchFromBackend('/rest/attendance/' + date + '/' + time, resultHandler, errHandler);
     },
+    fetchMonthlyAttendance: function(attendeeId, month, resultHandler, errHandler) {
+        fetchFromBackend('/rest/attendance/' + attendeeId + '/' + month, resultHandler, errHandler);
+    },
     fetchTrainings: function(resultHandler, errHandler) {
         fetchFromBackend('/rest/trainings', resultHandler, errHandler);
     },

@@ -55,6 +55,11 @@ def calculate_attendance_summary(attendees, year=None, month=None, split_by_mont
 
     groups = Groups.objects.all()
 
+    monthStr = {}
+    for month in months:
+        with setlocale('pl_PL.UTF-8'):
+            monthStr[month] = month.strftime("%B %Y").capitalize()
+
     for a in attendees:
         aKey = str(a.pk)
         if a not in attendees_summary:
@@ -102,12 +107,10 @@ def calculate_attendance_summary(attendees, year=None, month=None, split_by_mont
         if aKey not in output:
             output[aKey] = {}
         for month in months:
-            with setlocale('pl_PL.UTF-8'):
-                monthStr = month.strftime("%B %Y").capitalize()
             for atType in attendees_summary[aKey][month]:
                 if split_by_month:
-                    if monthStr not in output[aKey]:
-                        output[aKey][monthStr] = {}
+                    if month not in output[aKey]:
+                        output[aKey][month] = {}
 
                     count = attendees_summary[aKey][month][atType]["count"]
                     total = attendees_summary[aKey][month][atType]["total"] or 0
@@ -115,7 +118,7 @@ def calculate_attendance_summary(attendees, year=None, month=None, split_by_mont
                     if total > 0:
                         freq = "%d" % (100 * count / total)
 
-                    output[aKey][monthStr][atType] = {
+                    output[aKey][month][atType] = {
                         "freq": freq,
                         "count": count,
                     }
@@ -128,10 +131,13 @@ def calculate_attendance_summary(attendees, year=None, month=None, split_by_mont
         if split_by_month:
             # adjust the output format so it's easier to traverse in JavaScript
             tmp = []
-            for monthStr in output[aKey]:
-                row = { "month": monthStr }
-                for atType in output[aKey][monthStr]:
-                    row[atType] = output[aKey][monthStr][atType]
+            for month in output[aKey]:
+                row = {
+                    "month": monthStr[month],
+                    "raw_month": "%04d-%02d" % (month.year, month.month)
+                }
+                for atType in output[aKey][month]:
+                    row[atType] = output[aKey][month][atType]
                 tmp.append(row)
 
             output[aKey] = tmp

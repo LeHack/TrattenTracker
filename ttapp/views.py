@@ -77,11 +77,21 @@ def list_trainings(request, year=None, month=None):
     return JsonResponse({"trainings": trainings[-6:], "selected": trainings[-1]["id"]})
 
 
-def list_attendance(request, date, time, attendee_id=None):
-    params = {
-        "date__startswith": date,
-        "training__begin_time": time,
-    }
+def list_attendance(request, date=None, time=None, month=None, attendee_id=None):
+    if (date is None or time is None) and month is None:
+        raise Exception("You need to specify date and time or year and month")
+
+    params = {}
+    if date is not None and time is not None:
+        params = {
+            "date__startswith": date,
+            "training__begin_time": time,
+        }
+    else:
+        params = {
+            "date__startswith": month, # e.g. 2017-01
+        }
+
     if attendee_id is not None:
         params["attendee_id"] = get_object_or_404(Attendees, pk=attendee_id)
     attendance = []
