@@ -1,5 +1,6 @@
 import json
 from datetime import date, datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -120,21 +121,28 @@ def list_payments(request, attendee_id, year):
     return JsonResponse({"payments": payments})
 
 
-def get_last_balance(request, attendee_id):
-    balance = MonthlyBalance.objects.filter(
-        attendee=get_object_or_404(Attendees, pk=attendee_id),
-    ).order_by('year', 'month').last()
-    return JsonResponse({
-        "amount": balance.amount,
-        "date": "%s-%s" % (str(balance.year), str(balance.month))
-    })
+def get_current_outstanding(request, attendee_id=None, group_id=None):
+    ''' Calculates the attendance statistics for the given attendee or group '''
+    attendees = []
+    if group_id is not None:
+        attendees = Attendees.objects.filter(group=get_object_or_404(Groups, pk=group_id)).all()
+    elif attendee_id is not None:
+        attendees.append(get_object_or_404(Attendees, pk=attendee_id))
+
+    amount = {}
+    for a in attendees:
+        # TODO: call payment calculation lib
+        amount[a.pk] = 10;
+
+    return JsonResponse({ "amount": amount })
 
 # TODO: Implement session handling and make this dynamic
 def get_session_status(request):
     session = {
+        "attendee_id": 11,
         "status": "LoggedIn",
         "user": "LeHack",
-        "mode": "admin"
+        "role": "user"
     }
     return JsonResponse(session)
 

@@ -34,17 +34,26 @@ module.exports = {
     fetchGroups: function(resultHandler, errHandler) {
         fetchFromBackend('/rest/groups', resultHandler, errHandler);
     },
-    fetchGroupAttendanceSummary: function(groupId, resultHandler, errHandler) {
-        fetchFromBackend('/rest/attendance/group/summary/' + groupId, resultHandler, errHandler);
+    fetchAttendanceSummary: function(attendeeId, resultHandler, errHandler) {
+        fetchFromBackend('/rest/attendance/attendee/summary/' + attendeeId, resultHandler, errHandler);
     },
     fetchAttendanceSplitSummary: function(attendeeId, resultHandler, errHandler) {
         fetchFromBackend('/rest/attendance/attendee/split-summary/' + attendeeId, resultHandler, errHandler);
+    },
+    fetchGroupAttendanceSummary: function(groupId, resultHandler, errHandler) {
+        fetchFromBackend('/rest/attendance/group/summary/' + groupId, resultHandler, errHandler);
     },
     fetchTrainingAttendance: function(date, time, resultHandler, errHandler) {
         fetchFromBackend('/rest/attendance/' + date + '/' + time, resultHandler, errHandler);
     },
     fetchTrainings: function(resultHandler, errHandler) {
         fetchFromBackend('/rest/trainings', resultHandler, errHandler);
+    },
+    fetchOutstanding: function(attendeeId, resultHandler, errHandler) {
+        fetchFromBackend('/rest/outstanding/attendee/' + attendeeId, resultHandler, errHandler);
+    },
+    fetchGroupOutstanding: function(groupId, resultHandler, errHandler) {
+        fetchFromBackend('/rest/outstanding/group/' + groupId, resultHandler, errHandler);
     },
     sendAttendance: function(params, errorHandler, successHandler) {
         var form = new FormData();
