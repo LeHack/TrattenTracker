@@ -89,6 +89,7 @@ class ShowDetails extends Component {
                                 <tr>
                                     <th>#</th>
                                     <th>Trening</th>
+                                    {this.props.data.card && <th>Karta</th>}
                                 </tr>
                             </thead>
                             <tbody>
@@ -96,6 +97,7 @@ class ShowDetails extends Component {
                                     <tr key={det.date}>
                                         <td>{index+1}</td>
                                         <td>{det.date}</td>
+                                        {this.props.data.card && <td>{det.sport_card ? "Tak" : <b>Nie</b>}</td>}
                                     </tr>
                                 )}
                             </tbody>
@@ -163,6 +165,7 @@ class UserAttendance extends Component {
                 name: detailRow.month,
                 month: detailRow.raw_month,
                 attendee_id: this.props.user.attendee_id,
+                card: this.props.user.sport_card,
             },
         });
     }
@@ -190,6 +193,7 @@ class UserPayments extends Component {
     }
 
     render() {
+        let hasPayments = (this.state.payments.length > 0);
         return (
             <Table responsive striped>
                 <thead>
@@ -199,15 +203,23 @@ class UserPayments extends Component {
                         <th>Kwota</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {this.state.payments.map((det) =>
-                        <tr key={det.date}>
-                            <td>{det.date}</td>
-                            <td>{det.type}</td>
-                            <td>{det.amount} zł</td>
+                {hasPayments ?
+                    <tbody>
+                        {this.state.payments.map((det) =>
+                            <tr key={det.date}>
+                                <td>{det.date}</td>
+                                <td>{det.type}</td>
+                                <td>{det.amount} zł</td>
+                            </tr>
+                        )}
+                    </tbody>
+                    :
+                    <tbody>
+                        <tr>
+                            <td colSpan="3" className="center">Brak danych.</td>
                         </tr>
-                    )}
-                </tbody>
+                    </tbody>
+                }
             </Table>
         );
     }
@@ -222,12 +234,19 @@ export default class UserSummary extends Component {
             summary: true,
             attendance: true,
             payments: true,
+            selected: 1,
         };
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.user !== null) {
-            this.setState({user: nextProps.user})
+            this.setState({user: nextProps.user});
+        }
+    }
+
+    changePanel(i) {
+        if (this.state.selected !== i) {
+            this.setState({selected: i});
         }
     }
 
@@ -235,14 +254,14 @@ export default class UserSummary extends Component {
         return (
             <div>
                 {this.state.user ?
-                    <PanelGroup accordion defaultActiveKey="1">
-                        <Panel header="Zestawienie" eventKey="1">
+                    <PanelGroup accordion defaultActiveKey="1" activeKey={""+this.state.selected}>
+                        <Panel header="Zestawienie" eventKey="1" onClick={() => this.changePanel(1)}>
                             <Summary fatalError={this.props.fatalError} user={this.props.user}/>
                         </Panel>
-                        <Panel header="Obecności" eventKey="2">
+                        <Panel header="Obecności" eventKey="2" onClick={() => this.changePanel(2)}>
                             <UserAttendance fatalError={this.props.fatalError} user={this.props.user} />
                         </Panel>
-                        <Panel header="Płatności" eventKey="3">
+                        <Panel header="Płatności" eventKey="3" onClick={() => this.changePanel(3)}>
                             <UserPayments fatalError={this.props.fatalError} user={this.props.user} />
                         </Panel>
                     </PanelGroup>

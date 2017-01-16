@@ -150,6 +150,7 @@ def get_current_outstanding(request, attendee_id=None, group_id=None):
 def get_session_status(request):
     session = {
         "attendee_id": 6,
+        "sport_card": True,
         "status": "LoggedIn",
         "user": "LeHack",
         "role": "user"

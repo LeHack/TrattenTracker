@@ -7,16 +7,22 @@ import utils from '../utils';
 
 export default class Main extends Session {
     render() {
-        let navIntro = (
-            <p className="content-to-hide">
-                Witamy w Training Attendance Tracker - aplikacji do zbierania danych dotyczących frekwencji treningowej oraz bieżących rozliczeń.
-            </p>
-        );
+        let navIntro;
         let main_view;
         if (this.state.session.role === 'admin') {
+            navIntro = (
+                <p className="content-to-hide">
+                    Witamy w Training Attendance Tracker - aplikacji do zbierania danych dotyczących frekwencji treningowej oraz bieżących rozliczeń.
+                </p>
+            );
             main_view = (<AppNavigation fatalError={(error) => this.fatalErrorHandler(error)}/>);
         }
         else {
+            navIntro = (
+                <p>
+                    {this.state.session.user}
+                </p>
+            );
             main_view = (<UserSummary fatalError={(error) => this.fatalErrorHandler(error)} user={this.state.session}/>);
         }
         return (
