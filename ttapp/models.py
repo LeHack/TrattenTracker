@@ -57,6 +57,7 @@ class Attendees(models.Model):
     last_name      = models.CharField('nawisko', max_length=100)
     assigned_pin   = models.CharField('kod dostępu', max_length=10, blank=True, null=True)
     has_sport_card = models.BooleanField('czy posiada kartę sportową', default=False)
+    discount       = models.IntegerField('zniżka', blank=True, null=True, default=0)
 
     class Meta:
         unique_together = (("group", "first_name", "last_name"),)
