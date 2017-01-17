@@ -9,6 +9,7 @@ def seed_test_data():
     # first clear out the DB, note that removing a used group cascades trough *all* of the data in the system
     Groups.objects.all().delete()
     TrainingSchedule.objects.all().delete()
+    Payment.objects.all().delete()
 
     # now create some test instances for every model
     g1 = Groups(name="Grupa Początkująca", monthly_fee=80)
@@ -191,6 +192,11 @@ def seed_test_data():
                 { "training": mixt1, "date": "2017-01-02 19:01:00", "card": True },
                 { "training": g2t2,  "date": "2017-01-03 18:30:15", "card": True },
                 { "training": mixt2, "date": "2017-01-05 18:31:00", "card": True },
+                { "training": g1t1_17,  "date": "2017-01-09 19:00:00", "card": True },
+                { "training": g2t1_17,  "date": "2017-01-09 20:00:00", "card": True },
+                { "training": g2t2,     "date": "2017-01-10 18:31:00", "card": True },
+                { "training": g1t2_17,  "date": "2017-01-12 18:02:00", "card": True },
+                { "training": g2t3_17,  "date": "2017-01-12 19:02:00", "card": True },
             ],
             "payments": [
                 { "type": Payment.CASH, "amount": 110, "date": "2016-11-12 11:15:00" },
@@ -217,10 +223,11 @@ def seed_test_data():
 
         if "payments" in at:
             for pay in at["payments"]:
+                date=timezone.make_aware(dateparse.parse_datetime(pay["date"]))
                 if "tax" in pay:
-                    Payment(attendee=a, type=pay["type"], amount=pay["amount"], tax_reported=pay["tax"]).save()
+                    Payment(attendee=a, date=date, type=pay["type"], amount=pay["amount"], tax_reported=pay["tax"]).save()
                 else:
-                    Payment(attendee=a, type=pay["type"], amount=pay["amount"], tax_reported=True).save()
+                    Payment(attendee=a, date=date, type=pay["type"], amount=pay["amount"], tax_reported=True).save()
 
         if "balance" in at:
             for bal in at["balance"]:

@@ -1,0 +1,12 @@
+.error {
+	color: rgb(200,0,0);
+	text-align: center;
+}
+.error h3 {
+	font-weight: 900;
+}
+@media (max-width: 650px) {
+	.error h3 {
+	    font-size: 1.4em;
+	}
+}

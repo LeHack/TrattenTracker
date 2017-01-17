@@ -3,13 +3,23 @@ import utils from '../utils';
 
 import { DropdownButton, MenuItem, Table } from 'react-bootstrap';
 
+export function getAttendeeById(data, id) {
+    let selected = null;
+    for (let d of data) {
+        if (d.attendee_id === id) {
+            selected = d;
+            break;
+        }
+    }
+    return selected;
+}
 
 export class GroupSelect extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             groups: [],
-            selectedGroupId: null,
+            selectedGroupId: null
         };
     }
 
@@ -32,7 +42,7 @@ export class GroupSelect extends Component {
             });
             // we must call this once on init
             self.props.changeHandler(data.selected);
-        }(this, data));
+        }(this, data), this.props.fatalError);
     }
 
     render() {
@@ -43,31 +53,35 @@ export class GroupSelect extends Component {
                 break;
             }
         }
-
         return (
-            <DropdownButton bsStyle="default" title={selectedName} id="selectGroup" onSelect={(groupId) => this.handleGroupChange(groupId)}>
-                {this.state.groups.map((g) =>
-                    <MenuItem key={"group" + g.group_id} eventKey={g.group_id} active={g.group_id === this.state.selectedGroupId ? true : false}>{g.name}</MenuItem>
-                )}
-            </DropdownButton>
+            <div>
+                <DropdownButton bsStyle="default" title={selectedName} id="selectGroup"
+                        onSelect={(groupId) => this.handleGroupChange(groupId)}
+                        bsSize={this.props.bsSize ? this.props.bsSize : null}
+                    >
+                    {this.state.groups.map((g) =>
+                        <MenuItem key={"group" + g.group_id} eventKey={g.group_id} active={g.group_id === this.state.selectedGroupId ? true : false}>{g.name}</MenuItem>
+                    )}
+                </DropdownButton>
+            </div>
         );
     }
 }
 
 export class AttendeeList extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             attendees: [],
         };
     }
 
-    handleGroupChange(groupId, event) {
+    handleGroupChange(groupId) {
         utils.fetchAttendees(groupId, (data) => function(self, data){
             self.setState({
                 attendees: data.attendees
             });
-        }(this, data));
+        }(this, data), this.fatalErrorHandler);
     }
 
     renderHeaders() {
@@ -93,17 +107,27 @@ export class AttendeeList extends Component {
             </tr>
         );
     }
-    
+
+    fatalErrorHandler(error) {
+        console.log("Debug", error);
+        this.setState({errorStatus: true});
+    }
+
+    renderExtraComponents() {
+        return (<span></span>);
+    }
+
     render() {
         return (
             <div>
-                <GroupSelect changeHandler={(groupId, event) => this.handleGroupChange(groupId, event)}/>
+                <GroupSelect changeHandler={(groupId) => this.handleGroupChange(groupId)} fatalError={(error) => this.fatalErrorHandler(error)}/>
                 <Table responsive striped>
                     {this.renderHeaders()}
                     <tbody>
                         {this.state.attendees.map((a) => this.renderBody(a))}
                     </tbody>
                 </Table>
+                {this.renderExtraComponents()}
             </div>
         );
     }

@@ -2,12 +2,19 @@ import React, { Component } from 'react';
 import utils from '../utils';
 
 
+// TODO: Refactor as an ordinary component, not inheritance base
 class Session extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             session: { "user": null },
+            errorStatus: false,
         };
+    }
+
+    fatalErrorHandler(error) {
+        console.log("Debug", error);
+        this.setState({errorStatus: true});
     }
 
     componentDidMount() {
@@ -15,7 +22,7 @@ class Session extends Component {
             self.setState({
                 session: session
             });
-        }(this, session));
+        }(this, session), this.props.fatalError);
     }
 
     // Anything, to make React happy

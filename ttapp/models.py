@@ -79,7 +79,7 @@ class Attendance(models.Model):
 
     def get_training_group_id(self):
         training_group_id = self.attendee.group.pk
-        if self.training is not None:
+        if self.training is not None and self.training.group is not None:
             training_group_id = self.training.group.pk
 
         return training_group_id

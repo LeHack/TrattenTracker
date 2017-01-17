@@ -1,17 +1,16 @@
 import React, { Component } from 'react';
-import { DropdownButton, MenuItem, ListGroup, ListGroupItem } from 'react-bootstrap';
+import { Button, ButtonGroup, Collapse, DropdownButton, MenuItem, ListGroup, ListGroupItem } from 'react-bootstrap';
 import AppHeader  from '../components/header';
-import { AttendeeList, GroupSelect } from '../components/attendee_list';
 import Session from '../components/session';
 import utils from '../utils';
 import './attendance.css';
 
 class TrainingSelect extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             trainings: null,
-            selectedTraining: { id: null, date: "..." },
+            selectedTraining: { id: null, name: "..." },
         };
     }
 
@@ -29,11 +28,14 @@ class TrainingSelect extends Component {
     handleTrainingChange(trainingId) {
         if (trainingId !== this.state.selectedTraining.id) {
             // update our own state
-            this.setState({
-                selectedTraining: this.getTrainingById(this.state.trainings, trainingId),
-            });
-            // and fire the parent handler
-            this.props.changeHandler(trainingId);
+            let selected = this.getTrainingById(this.state.trainings, trainingId);
+            // first fire the parent handler
+            if (this.props.changeHandler(selected)) {
+                // if everything went ok, update state
+                this.setState({
+                    selectedTraining: selected,
+                });
+            }
         }
     }
 
@@ -45,20 +47,20 @@ class TrainingSelect extends Component {
                 selectedTraining: selected,
             });
             // we must call this once on init
-            self.props.changeHandler(selected.id);
-        }(this, data));
+            self.props.changeHandler(selected);
+        }(this, data), this.props.fatalError);
     }
 
     render() {
         let contents = "";
         if (this.state.trainings != null) {
             contents = this.state.trainings.map((t) =>
-                <MenuItem key={"training" + t.id} eventKey={t.id} active={t.id === this.state.selectedTraining.id ? true : false}>{t.date}</MenuItem>
+                <MenuItem key={"training" + t.id} eventKey={t.id} active={t.id === this.state.selectedTraining.id ? true : false}>{t.name}</MenuItem>
             );
         }
         return (
             <div className="trainingSelect">
-                <DropdownButton bsStyle="default" title={this.state.selectedTraining.date} id="selectTraining" onSelect={(trainingId) => this.handleTrainingChange(trainingId)}>
+                <DropdownButton bsStyle="default" bsSize="sm" pullRight={true} title={this.state.selectedTraining.name} id="selectTraining" onSelect={(trainingId) => this.handleTrainingChange(trainingId)}>
                     {contents}
                 </DropdownButton>
             </div>
@@ -66,55 +68,297 @@ class TrainingSelect extends Component {
     }
 }
 
-class AttendanceInput extends AttendeeList {
-    constructor() {
-        super();
+function SaveChanges(props) {
+    let clickHandler = props.saveHandler;
+    let text = "Gotowe";
+    if (props.sending) {
+        text = "Wysyłanie...";
+    }
+    if (props.disabled) {
+        clickHandler = function() { this.blur(); };
+    }
+    else if (!props.sending) {
+        text = "Wyślij zmiany";
+    }
+    return (
+        <ButtonGroup bsClass="btn-group saveControls">
+            <Button bsSize="sm" disabled={props.disabled} onClick={clickHandler}>{text}</Button>
+        </ButtonGroup>
+    );
+}
+
+class AttendanceInput extends Component {
+    constructor(props) {
+        super(props);
         this.state = {
-            ...this.state,
+            attendees: [],
+            attendeeGroup: {},
             attendance: {},
+            sportCards: {},
+            training: null,
+            commsError: false,
+            sending: false,
         };
+        this.groupLoading = [];
     }
 
-    updateAttendance(id) {
-        console.log("clicked", id);
+    componentDidMount() {
+        utils.fetchGroups((data) => function(self, data){
+            for (let group of data.groups) {
+                self.groupLoading.push({ id: group.group_id, done: false });
+                self.processGroup(group);
+            }
+        }(this, data), this.props.fatalError);
     }
 
-    handleGroupChange(groupId) {
-        super.handleGroupChange(groupId);
-        // now also fetch current attendance data for this group/training
-//        utils.fetchAttendees(groupId, (data) => function(self, data){
-//            self.setState({
-//                attendees: data.attendees
-//            });
-//        }(this, data));
+    processGroup(group) {
+        // join together data for all groups
+        utils.fetchAttendees(group.group_id, (data) => function(self, data){
+            let groupState = {};
+            let groupId = "GRP:" + group.group_id;
+            groupState[groupId] = true;
+            let attendeGroup = {
+                label: {
+                    id: groupId,
+                    name: group.name,
+                },
+                entries: data.attendees,
+            };
+            for (let g of self.groupLoading) {
+                if (g.id === group.group_id) {
+                    g["attendees"] = [attendeGroup];
+                    g["attendeeGroup"] = groupState;
+                    g["done"] = true;
+                    break;
+                }
+            }
+            self.finishProcessing();
+        }(this, data), this.props.fatalError);
     }
 
-    handleTrainingChange(trainingId) {
-        console.log("Changed training to", trainingId);
+    finishProcessing() {
+        let attendees = [];
+        let groupState = {};
+        let sportCards = {};
+        for (let group of this.groupLoading) {
+            if (!group.done) {
+                return;
+            }
+            attendees.push.apply(attendees, group.attendees);
+            Object.assign(groupState, group.attendeeGroup);
+        }
+        for (let g of attendees) {
+            for (let a of g.entries) {
+                if (!(a.attenee_id in sportCards)) {
+                    sportCards[a.attendee_id] = {}
+                }
+                sportCards[a.attendee_id]['owns'] = a.sport_card;
+            }
+        }
+
+        // if every group has been processed, join and update state
+        this.setState({
+            attendees: attendees,
+            attendeeGroup: groupState,
+            sportCards: sportCards
+        });
+        // possible optimization, merge this to do only one setState call
+        if (this.pending_training_data) {
+            this.processTrainingData();
+        }
+    }
+
+    handleTrainingChange(training) {
+        let change = !this.state.commsError || confirm("Nie wszystkie dane zostały zapisane. Zmiana wyboru treningu spowodujeich utratę. Czy jesteś pewien?");
+        if (change) {
+            utils.fetchTrainingAttendance(training.date, training.time, (data) => function(self, data){
+                if (self.state.attendees.length === 0) {
+                    self.pending_training_data = {
+                        training: training,
+                        data: data,
+                    };
+                }
+                else {
+                    self.processTrainingData(training, data);
+                }
+            }(this, data), this.props.fatalError);
+        }
+        return change;
+    }
+
+    processTrainingData(training, data) {
+        if (!training) {
+            training = this.pending_training_data["training"];
+        }
+        if (!data) {
+            data = this.pending_training_data["data"];
+        }
+        let attendance   = {};
+        let sportCards = {...this.state.sportCards};
+        for (let att of data.attendance) {
+            attendance[att.attendee_id] = true;
+            sportCards[att.attendee_id]['used'] = att.sport_card;
+        }
+        this.setState({
+            attendance: attendance,
+            training: training,
+            sportCards: sportCards,
+        });
+    }
+
+    updateAttendance(attendeeId) {
+        // first make a copy of the state vars
+        let attendance = {...this.state.attendance};
+        let sportCard  = {...this.state.sportCards};
+
+        // now check what to do
+        let isPresent         = attendance[attendeeId];
+        let ownsSportCard     = sportCard[attendeeId]['owns'];
+        let usedSportCard     = sportCard[attendeeId]['used'];
+        if (!isPresent) {
+            isPresent = true;
+            if (ownsSportCard) {
+                usedSportCard = true;
+            }
+        }
+        else if (isPresent && ownsSportCard && usedSportCard) {
+            usedSportCard = false;
+        }
+        else {
+            isPresent = false;
+        }
+        // update state
+        attendance[attendeeId] = isPresent;
+        sportCard[attendeeId]['used'] = usedSportCard;
+        let send = !this.state.commsError;
+        this.setState({
+            attendance: attendance,
+            sportCards: sportCard,
+            sending: send,
+        });
+        // now send the data to backend
+        if (send) {
+            utils.sendAttendance({
+                training: this.state.training,
+                attendance: [{
+                    attendee_id: attendeeId,
+                    is_present: isPresent,
+                    has_sport_card: (ownsSportCard && usedSportCard)
+                }],
+            },
+            (ex) => function(ex, self) {
+                console.log('Sending attendance data failed with', ex);
+                self.setState({sending: false, commsError: true});
+            }(ex, this),
+            () => function(self){
+                self.setState({sending: false});
+            }(this));
+        }
+    }
+
+    saveAll() {
+        // prepare data to send
+        let attendance = [];
+        for (let group of this.state.attendees) {
+            for (let a of group.entries) {
+                let sportCard = (this.state.sportCards[a.attendee_id] || false);
+                let isPresent = (this.state.attendance[a.attendee_id] || false);
+                attendance.push({
+                    attendee_id: a.attendee_id,
+                    is_present: isPresent,
+                    has_sport_card: (sportCard && sportCard['owns'] && sportCard['used'])
+                });
+            }
+        }
+        // send it
+        this.setState({sending: true});
+        utils.sendAttendance({
+            training: this.state.training,
+            attendance: attendance,
+        },
+        (ex) => function(ex, self) {
+            console.log('Sending attendance data failed with', ex);
+            self.setState({commsError: true, sending: false});
+            alert("Serwer nie odpowiada. Prosimy spróbować później.");
+        }(ex, this),
+        (result) => function(self, result) {
+            // on success, reset the commsError
+            self.setState({commsError: false, sending: false});
+        }(this, result));
+    }
+
+    getBsStyle(attendeeId) {
+        let isPresent     = this.state.attendance[attendeeId];
+        let ownsSportCard = this.state.sportCards[attendeeId]['owns'];
+        let usedSportCard = this.state.sportCards[attendeeId]['used'];
+
+        let style = null;
+        if (isPresent && ownsSportCard && !usedSportCard) {
+            style = "danger";
+        }
+        else if (isPresent) {
+            style = "info";
+        }
+
+        return style;
     }
 
     render() {
         return (
             <div>
-                <GroupSelect changeHandler={(groupId) => this.handleGroupChange(groupId)}/>
-                <TrainingSelect changeHandler={(trainingId) => this.handleTrainingChange(trainingId)}/>
-                <ListGroup>
-                    {this.state.attendees.map((a) =>
-                        <ListGroupItem key={a.attendee_id} onClick={() => this.updateAttendance(a.attendee_id)}>{a.name}</ListGroupItem>
-                    )}
-                </ListGroup>
+                <div className="controlBar">
+                    <SaveChanges disabled={!this.state.commsError} saveHandler={() => this.saveAll()} sending={this.state.sending} />
+                    <TrainingSelect changeHandler={(training) => this.handleTrainingChange(training)} fatalError={this.props.fatalError}/>
+                </div>
+                {this.state.attendees.map((g) =>
+                    <div className="lists" key={g.label.id}>
+                        <ListGroup>
+                            <ListGroupItem bsStyle="info" header={g.label.name} onClick={() => this.toggleGroup(g.label.id)} active={true}/>
+                        </ListGroup>
+                        <Collapse in={this.state.attendeeGroup[g.label.id]}>
+                            <ListGroup>
+                                {g.entries.map((a) =>
+                                    <ListGroupItem bsStyle={this.getBsStyle(a.attendee_id)} key={a.attendee_id} onClick={() => this.updateAttendance(a.attendee_id)}>
+                                        {a.name}
+                                    </ListGroupItem>
+                                )}
+                            </ListGroup>
+                        </Collapse>
+                    </div>
+                )}
             </div>
         );
+    }
+
+    toggleGroup(id) {
+        let groupState = {...this.state.attendeeGroup};
+        groupState[id] = !groupState[id];
+        this.setState({
+            attendeeGroup: groupState,
+        });
     }
 }
 
 class Attendance extends Session {
+    constructor(props) {
+        super(props);
+        this.state = {
+            session: { "user": null },
+            errorStatus: false,
+        };
+    }
+
+    fatalErrorHandler(error) {
+        console.log("Debug", error);
+        this.setState({errorStatus: true});
+    }
+
     render() {
         let title = (<p>Wprowadzanie obecności</p>);
         return (
             <div>
-                <AppHeader viewJSX={title} session={this.state.session} location="Obecności" />
-                <AttendanceInput />
+                <AppHeader viewJSX={title} session={this.state.session} routes={this.props.routes} params={this.props.params} showBreadcrumbs />
+                {this.state.errorStatus ? <utils.Error reason="Nie można nawiązać połączenia z serwerem" /> : <AttendanceInput fatalError={(error) => this.fatalErrorHandler(error)}/>}
             </div>
         );
     }

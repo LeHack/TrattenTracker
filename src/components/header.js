@@ -1,6 +1,6 @@
 import React from 'react';
-import { Breadcrumb, Jumbotron } from 'react-bootstrap';
-import cfg from '../route_config';
+import { Jumbotron } from 'react-bootstrap';
+import Breadcrumbs from 'react-breadcrumbs';
 import './header.css';
 
 function Login(props) {
@@ -25,15 +25,8 @@ function AppHeader(props) {
                 <h1>TrAtten Tracker</h1>
                 {props.viewJSX}
             </Jumbotron>
-            {props.location &&
-                <Breadcrumb>
-                    <Breadcrumb.Item href={cfg.routes.main}>
-                        Start
-                    </Breadcrumb.Item>
-                    <Breadcrumb.Item active>
-                        {props.location}
-                    </Breadcrumb.Item>
-                </Breadcrumb>
+            {props.showBreadcrumbs &&
+                <Breadcrumbs separator=" / " routes={props.routes} params={props.params} setDocumentTitle={true}/>
             }
         </div>
     );

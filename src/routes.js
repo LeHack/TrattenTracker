@@ -1,6 +1,7 @@
 import React from 'react';
-import { Router, Route, browserHistory } from 'react-router';
+import { IndexRoute, Router, Route, browserHistory } from 'react-router';
 
+import App from './App';
 import Main from './views/main';
 import AttendanceSummary from './views/attendance_summary';
 import Attendance from './views/attendance';
@@ -9,11 +10,13 @@ import cfg from './route_config';
 
 module.exports = (
     <Router history={browserHistory}>
-        <Route path={cfg.routes.main} component={Main}/>
-        <Route path={cfg.routes.attendance} component={Attendance}/>
-        <Route path={cfg.routes.payment} component={NotFound}/>
-        <Route path={cfg.routes.attendance_summary} component={AttendanceSummary}/>
-        <Route path={cfg.routes.payment_summary} component={NotFound}/>
-        <Route path='*' component={NotFound}/>
+        <Route name="Start" path="/" component={App}>
+            <IndexRoute component={Main} />
+            <Route name="Obecności" path={cfg.routes.attendance} component={Attendance}/>
+            <Route name="Płatności" path={cfg.routes.payment} component={NotFound}/>
+            <Route name="Zestawienie Obecności" path={cfg.routes.attendance_summary} component={AttendanceSummary}/>
+            <Route name="Zestawienie Płatności" path={cfg.routes.payment_summary} component={NotFound}/>
+            <Route name="404" path='*' component={NotFound}/>
+		</Route>
     </Router>
 );
