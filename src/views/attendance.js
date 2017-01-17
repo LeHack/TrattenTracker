@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Collapse, DropdownButton, MenuItem, ListGroup, ListGroupItem } from 'react-bootstrap';
+import { Button, ButtonGroup, Collapse, DropdownButton, MenuItem, ListGroup, ListGroupItem, ProgressBar } from 'react-bootstrap';
 import AppHeader  from '../components/header';
 import Session from '../components/session';
 import utils from '../utils';
@@ -254,6 +254,8 @@ class AttendanceInput extends Component {
                 self.setState({sending: false});
             }(this));
         }
+
+        return false;
     }
 
     saveAll() {
@@ -310,22 +312,27 @@ class AttendanceInput extends Component {
                     <SaveChanges disabled={!this.state.commsError} saveHandler={() => this.saveAll()} sending={this.state.sending} />
                     <TrainingSelect changeHandler={(training) => this.handleTrainingChange(training)} fatalError={this.props.fatalError}/>
                 </div>
-                {this.state.attendees.map((g) =>
-                    <div className="lists" key={g.label.id}>
-                        <ListGroup>
-                            <ListGroupItem bsStyle="info" header={g.label.name} onClick={() => this.toggleGroup(g.label.id)} active={true}/>
-                        </ListGroup>
-                        <Collapse in={this.state.attendeeGroup[g.label.id]}>
-                            <ListGroup>
-                                {g.entries.map((a) =>
-                                    <ListGroupItem bsStyle={this.getBsStyle(a.attendee_id)} key={a.attendee_id} onClick={() => this.updateAttendance(a.attendee_id)}>
-                                        {a.name}
-                                    </ListGroupItem>
-                                )}
-                            </ListGroup>
-                        </Collapse>
+                {this.state.attendees.length > 0 ?
+                    <div>
+                        {this.state.attendees.map((g) =>
+                            <div className="lists" key={g.label.id}>
+                                <ListGroup>
+                                    <ListGroupItem bsStyle="info" header={g.label.name} onClick={() => this.toggleGroup(g.label.id)} active={true}/>
+                                </ListGroup>
+                                <Collapse in={this.state.attendeeGroup[g.label.id]}>
+                                    <ListGroup>
+                                        {g.entries.map((a) =>
+                                            <ListGroupItem bsStyle={this.getBsStyle(a.attendee_id)} key={a.attendee_id} onClick={() => this.updateAttendance(a.attendee_id)}>
+                                                {a.name}
+                                            </ListGroupItem>
+                                        )}
+                                    </ListGroup>
+                                </Collapse>
+                            </div>
+                        )}
                     </div>
-                )}
+                    : <ProgressBar active label="Ładowanie..." now={100} />
+                }
             </div>
         );
     }
