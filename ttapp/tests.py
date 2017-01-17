@@ -244,7 +244,7 @@ def seed_test_data():
             for bal in at["balance"]:
                 MonthlyBalance(attendee=a, year=bal["year"], month=bal["month"], amount=bal["amount"]).save()
 
-
+# todo: more testing needed, especially for total balance calculation
 class UtilsTestCase(TestCase):
     payUtil = PaymentUtil()
 
@@ -253,14 +253,17 @@ class UtilsTestCase(TestCase):
 
     def test_get_monthly_payment__should_return_fixed_payment(self):
         time = datetime.date(2017, 1, 1)
-        attendee = Attendees.objects.filter(has_sport_card=True)[0]
+        attendee = Attendees.objects.filter(has_sport_card=False)[0]
         cost = self.payUtil.get_monthly_payment(time.year, time.month, attendee)
         self.assertEqual(attendee.group.monthly_fee, cost)
 
     def test_get_monthly_payment__should_calculate_payment(self):
         time = datetime.date(2017, 1, 1)
-        attendee = Attendees.objects.filter(has_sport_card=False)[0]
+        attendee = Attendees.objects.filter(has_sport_card=True)[0]
         cost = self.payUtil.get_monthly_payment(time.year, time.month, attendee)
-        self.assertEqual(60, cost)
+        self.assertEqual(70, cost)
 
-        self.payUtil.get_total_current_balance(attendee)
+    def test_get_total_current_balance(self):
+        attendee = Attendees.objects.filter(has_sport_card=True)[1]
+        cost = self.payUtil.get_total_current_balance(attendee)
+        self.assertEqual(90, cost)

@@ -124,7 +124,7 @@ def calculate_attendance_summary(attendees, year=None, month=None, split_by_mont
                     }
                 else:
                     if atType not in output[aKey]:
-                        output[aKey][atType] = { "count": 0, "total": 0 }
+                        output[aKey][atType] = {"count": 0, "total": 0}
                     output[aKey][atType]["count"] += attendees_summary[aKey][month][atType]["count"]
                     output[aKey][atType]["total"] += attendees_summary[aKey][month][atType]["total"]
 
@@ -166,8 +166,8 @@ Two types of payment based on Attendees has_sport_card attribute
 If has_sport_card == true than attendance-based payment
 If has_sport_card == false than monthly payment
 '''
-# todo: total current balance calculation
 class PaymentUtil:
+
     money_from_sport_card = 10   # 10zl
 
     '''
@@ -175,16 +175,16 @@ class PaymentUtil:
     '''
     def get_monthly_payment(self, year, month, attendee):
         if attendee.has_sport_card:
-            return attendee.group.monthly_fee
+            return self.monthly_payment_based_on_attendance(year, month, attendee)
         # Logic for calculate monthly payment
-        return self.monthly_payment_based_on_attendance(year, month, attendee)
+        return attendee.group.monthly_fee
 
     def monthly_payment_based_on_attendance(self, year, month, attendee):
         start = date(year, month, 1)
         attendance_count = Attendance.objects.filter(attendee=attendee,
                                                      date__gte=start,
                                                      date__lte=self.last_day_of_month(month)).count()
-        return attendee.group.monthly_fee - (attendance_count * self.money_from_sport_card)
+        return (attendee.group.monthly_fee - attendee.discount) - (attendance_count * self.money_from_sport_card)
 
     @staticmethod
     def last_day_of_month(month):
@@ -194,62 +194,30 @@ class PaymentUtil:
 
     '''
     Utility method for getting total current balance
-
-    the total current balance - to calculate this we take every month for which there is
-    any attendance info available for that particular attendee,
-    multiply the month count by the group fee and
-    subtract the attendance count x10zł (this should be always calculated live, not stored anywhere)
     '''
     def get_total_current_balance(self, attendee):
-        last_date_year = None
-        last_date_month = None
-        previous_amount = 0
-        current_amount = 0;
+        attendances_map = {}
+        total_balance = 0
 
         monthly_balance_set = MonthlyBalance.objects.filter(attendee=attendee).order_by('-year', '-month')
-        monthly_balance = None
-        # if monthly_balance_set.exists():
-        #     monthly_balance = monthly_balance_set.reverse()[0]
-        #     last_date_year = monthly_balance.year
-        #     last_date_month = monthly_balance.month
-        #     previous_amount = monthly_balance.amount
+        if monthly_balance_set.exists():
+            total_balance = monthly_balance_set[0].amount
+            next_month = date(monthly_balance_set[0].year, monthly_balance_set[0].month, 1) + relativedelta(months=1)
+            attendances = Attendance.objects.filter(attendee=attendee, date__gte=next_month).order_by('-date')
+        else:
+            attendances = Attendance.objects.filter(attendee=attendee).order_by('-date')
 
-        # print(last_date_year)
-        # print(last_date_month)
-        # print(previous_amount)
-
-        attendances = Attendance.objects.filter(attendee=attendee).order_by('-date')
-        print(attendances)
-
-        year = None
-        month = None
-        change = False
         for record in attendances:
-            if record.date.year != year:
-                year = record.date.year
-                change = True
+            if record.date.year in attendances_map:
+                if record.date.month in attendances_map[record.date.year]:
+                    attendances_map[record.date.year][record.date.month] += 1
+                else:
+                    attendances_map[record.date.year] = {record.date.month: 1}
             else:
-                change = False
+                attendances_map[record.date.year] = {record.date.month: 1}
 
-            if record.date.month != month:
-                month = record.date.month
-                change = True
-            else:
-                change = False
+        for year, nested_map in attendances_map.items():
+            for month, counter in nested_map.items():
+                total_balance += (attendee.group.monthly_fee - attendee.discount) - (counter * self.money_from_sport_card)
 
-            if change:
-                current_amount += self.get_monthly_payment(year, month, attendee)
-
-        print(current_amount)
-
-        return current_amount
-
-
-
-
-
-
-
-
-
-
+        return total_balance
