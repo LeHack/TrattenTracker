@@ -54,10 +54,10 @@ class PaymentUtil:
 
     def monthly_payment_based_on_attendance(self, year, month, attendee):
         start = date(year, month, 1)
-        attendence_count = Attendance.objects.filter(attendee=attendee,
+        attendance_count = Attendance.objects.filter(attendee=attendee,
                                                      date__gte=start,
                                                      date__lte=self.last_day_of_month(month)).count()
-        return attendee.group.monthly_fee - (attendence_count * self.money_from_sport_card)
+        return attendee.group.monthly_fee - (attendance_count * self.money_from_sport_card)
 
     @staticmethod
     def last_day_of_month(month):
