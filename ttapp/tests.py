@@ -251,3 +251,5 @@ class UtilsTestCase(TestCase):
         attendee = Attendees.objects.filter(has_sport_card=False)[0]
         cost = self.payUtil.get_monthly_payment(time.year, time.month, attendee)
         self.assertEqual(60, cost)
+
+        self.payUtil.get_total_current_balance(attendee)

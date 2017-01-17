@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q
-from ttapp.models import Attendance, CancelledTrainings, TrainingSchedule, Groups
+from ttapp.models import Attendance, CancelledTrainings, TrainingSchedule, Groups, MonthlyBalance
 
 
 def get_trainings_in_month(year, month, group=None):
@@ -191,3 +191,65 @@ class PaymentUtil:
         time = datetime.now().replace(month=month)
         next_month = time.replace(day=28) + timedelta(days=4)  # this will never fail
         return next_month - timedelta(days=next_month.day)
+
+    '''
+    Utility method for getting total current balance
+
+    the total current balance - to calculate this we take every month for which there is
+    any attendance info available for that particular attendee,
+    multiply the month count by the group fee and
+    subtract the attendance count x10zł (this should be always calculated live, not stored anywhere)
+    '''
+    def get_total_current_balance(self, attendee):
+        last_date_year = None
+        last_date_month = None
+        previous_amount = 0
+        current_amount = 0;
+
+        monthly_balance_set = MonthlyBalance.objects.filter(attendee=attendee).order_by('-year', '-month')
+        monthly_balance = None
+        # if monthly_balance_set.exists():
+        #     monthly_balance = monthly_balance_set.reverse()[0]
+        #     last_date_year = monthly_balance.year
+        #     last_date_month = monthly_balance.month
+        #     previous_amount = monthly_balance.amount
+
+        # print(last_date_year)
+        # print(last_date_month)
+        # print(previous_amount)
+
+        attendances = Attendance.objects.filter(attendee=attendee).order_by('-date')
+        print(attendances)
+
+        year = None
+        month = None
+        change = False
+        for record in attendances:
+            if record.date.year != year:
+                year = record.date.year
+                change = True
+            else:
+                change = False
+
+            if record.date.month != month:
+                month = record.date.month
+                change = True
+            else:
+                change = False
+
+            if change:
+                current_amount += self.get_monthly_payment(year, month, attendee)
+
+        print(current_amount)
+
+        return current_amount
+
+
+
+
+
+
+
+
+
+
