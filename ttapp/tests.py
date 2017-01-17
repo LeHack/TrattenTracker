@@ -92,6 +92,7 @@ def seed_test_data():
             "first_name": "Marian",
             "last_name": "Nowak",
             "sport_card": True,
+            "discount": 20,
             "attendance": [
                 { "training": g1t1, "date": "2016-12-05 19:01:00" },
                 { "training": g1t2, "date": "2016-12-08 18:01:00", "card": True },
@@ -135,6 +136,7 @@ def seed_test_data():
             "first_name": "Zofia",
             "last_name": "Pomak",
             "sport_card": False,
+            "discount": 20,
             "attendance": [
                 { "training": g1t1, "date": "2016-12-05 19:01:00" },
                 { "training": mixt1, "date": "2016-12-12 18:01:00" },
@@ -174,6 +176,7 @@ def seed_test_data():
             "first_name": "Bruce",
             "last_name": "Lee",
             "sport_card": True,
+            "discount": 20,
             "attendance": [
                 { "training": g1t2,  "date": "2016-12-01 18:01:00", "card": True },
                 { "training": g2t3,  "date": "2016-12-01 19:01:00", "card": True },
@@ -197,6 +200,9 @@ def seed_test_data():
                 { "training": g2t2,     "date": "2017-01-10 18:31:00", "card": True },
                 { "training": g1t2_17,  "date": "2017-01-12 18:02:00", "card": True },
                 { "training": g2t3_17,  "date": "2017-01-12 19:02:00", "card": True },
+                { "training": g1t1_17,  "date": "2017-01-16 19:00:00", "card": True },
+                { "training": g2t1_17,  "date": "2017-01-16 20:00:00", "card": True },
+                { "training": g2t2,     "date": "2017-01-17 18:31:00", "card": True },
             ],
             "payments": [
                 { "type": Payment.CASH, "amount": 110, "date": "2016-11-12 11:15:00" },
@@ -216,10 +222,15 @@ def seed_test_data():
         a.save()
         for tr in at["attendance"]:
             date=timezone.make_aware(dateparse.parse_datetime(tr["date"]))
+            att_params = {
+                "attendee": a, "training": tr["training"], "date": date
+            }
             if "card" in tr:
-                Attendance(attendee=a, training=tr["training"], date=date, used_sport_card=tr["card"]).save()
-            else:
-                Attendance(attendee=a, training=tr["training"], date=date).save()
+                att_params["used_sport_card"] = tr["card"]
+            if "discount" in tr:
+                att_params["discount"] = tr["discount"]
+
+            Attendance(**att_params).save()
 
         if "payments" in at:
             for pay in at["payments"]:

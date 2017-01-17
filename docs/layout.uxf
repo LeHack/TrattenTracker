@@ -45,7 +45,7 @@
       <x>280</x>
       <y>230</y>
       <w>160</w>
-      <h>120</h>
+      <h>130</h>
     </coordinates>
     <panel_attributes>*Attendees*
 --
@@ -53,7 +53,8 @@
 - first_name
 - last_name
 - has_sport_card
-- assigned_pin</panel_attributes>
+- assigned_pin
+- discount</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
@@ -214,13 +215,13 @@ m1=0..n</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>340</x>
-      <y>340</y>
+      <y>350</y>
       <w>50</w>
-      <h>100</h>
+      <h>90</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 m1=0..1
 </panel_attributes>
-    <additional_attributes>10.0;80.0;10.0;10.0</additional_attributes>
+    <additional_attributes>10.0;70.0;10.0;10.0</additional_attributes>
   </element>
 </diagram>
