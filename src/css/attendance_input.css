@@ -6,7 +6,13 @@ div.trainingSelect {
     bottom: 0;
     right: 0;
 }
-.lists .list-group {
+.panel-group {
+    margin-bottom: 10px;
+}
+.panel-body {
+    padding: 0;
+}
+.list-group {
 	margin: 0;
 }
 .saveControls {

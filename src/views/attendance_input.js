@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Collapse, DropdownButton, MenuItem, ListGroup, ListGroupItem, ProgressBar } from 'react-bootstrap';
+import { Button, ButtonGroup, DropdownButton, MenuItem, ListGroup, ListGroupItem, PanelGroup, Panel, ProgressBar } from 'react-bootstrap';
 import AppHeader  from '../components/header';
 import Session from '../components/session';
 import utils from '../utils';
-import './attendance.css';
+import '../css/attendance_input.css';
 
 class TrainingSelect extends Component {
     constructor(props) {
@@ -206,7 +206,9 @@ class AttendanceInput extends Component {
         });
     }
 
-    updateAttendance(attendeeId) {
+    updateAttendance(attendeeId, e) {
+        // make sure this click doesn't reach the panel container
+        e.stopPropagation();
         // first make a copy of the state vars
         let attendance = {...this.state.attendance};
         let sportCard  = {...this.state.sportCards};
@@ -315,20 +317,17 @@ class AttendanceInput extends Component {
                 {this.state.attendees.length > 0 ?
                     <div>
                         {this.state.attendees.map((g) =>
-                            <div className="lists" key={g.label.id}>
-                                <ListGroup>
-                                    <ListGroupItem bsStyle="info" header={g.label.name} onClick={() => this.toggleGroup(g.label.id)} active={true}/>
-                                </ListGroup>
-                                <Collapse in={this.state.attendeeGroup[g.label.id]}>
+                            <PanelGroup>
+                                <Panel collapsible expanded={this.state.attendeeGroup[g.label.id]} header={g.label.name} onClick={() => this.toggleGroup(g.label.id)}>
                                     <ListGroup>
                                         {g.entries.map((a) =>
-                                            <ListGroupItem bsStyle={this.getBsStyle(a.attendee_id)} key={a.attendee_id} onClick={() => this.updateAttendance(a.attendee_id)}>
+                                            <ListGroupItem bsStyle={this.getBsStyle(a.attendee_id)} key={a.attendee_id} onClick={(e) => this.updateAttendance(a.attendee_id, e)}>
                                                 {a.name}
                                             </ListGroupItem>
                                         )}
                                     </ListGroup>
-                                </Collapse>
-                            </div>
+                                </Panel>
+                            </PanelGroup>
                         )}
                     </div>
                     : <ProgressBar active label="Ładowanie..." now={100} />
@@ -346,29 +345,16 @@ class AttendanceInput extends Component {
     }
 }
 
-class Attendance extends Session {
-    constructor(props) {
-        super(props);
-        this.state = {
-            session: { "user": null },
-            errorStatus: false,
-        };
-    }
-
-    fatalErrorHandler(error) {
-        console.log("Debug", error);
-        this.setState({errorStatus: true});
-    }
-
+class AttendanceView extends Component {
     render() {
         let title = (<p>Wprowadzanie obecności</p>);
         return (
             <div>
-                <AppHeader viewJSX={title} session={this.state.session} routes={this.props.routes} params={this.props.params} showBreadcrumbs />
-                {this.state.errorStatus ? <utils.Error reason="Nie można nawiązać połączenia z serwerem" /> : <AttendanceInput fatalError={(error) => this.fatalErrorHandler(error)}/>}
+                <AppHeader viewJSX={title} session={this.props.session} routes={this.props.routes} params={this.props.params} showBreadcrumbs />
+                <AttendanceInput fatalError={this.props.fatalErrorHandler}/>
             </div>
         );
     }
 }
 
-export default Attendance;
+export default Session(AttendanceView);

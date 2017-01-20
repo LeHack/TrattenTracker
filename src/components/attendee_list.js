@@ -81,7 +81,7 @@ export class AttendeeList extends Component {
             self.setState({
                 attendees: data.attendees
             });
-        }(this, data), this.fatalErrorHandler);
+        }(this, data), this.props.fatalErrorHandler);
     }
 
     renderHeaders() {
@@ -108,11 +108,6 @@ export class AttendeeList extends Component {
         );
     }
 
-    fatalErrorHandler(error) {
-        console.log("Debug", error);
-        this.setState({errorStatus: true});
-    }
-
     renderExtraComponents() {
         return (<span></span>);
     }
@@ -120,7 +115,7 @@ export class AttendeeList extends Component {
     render() {
         return (
             <div>
-                <GroupSelect changeHandler={(groupId) => this.handleGroupChange(groupId)} fatalError={(error) => this.fatalErrorHandler(error)}/>
+                <GroupSelect changeHandler={(groupId) => this.handleGroupChange(groupId)} fatalError={this.props.fatalErrorHandler}/>
                 <Table responsive striped>
                     {this.renderHeaders()}
                     <tbody>

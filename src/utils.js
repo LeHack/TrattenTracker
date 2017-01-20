@@ -1,7 +1,3 @@
-import React from 'react';
-import { Jumbotron } from 'react-bootstrap';
-import './error.css';
-
 function fetchFromBackend(url, resultHandler, errHandler) {
     console.log("Fetching data from:",url);
     if (!errHandler) {
@@ -79,12 +75,5 @@ module.exports = {
         }).catch(function(ex) {
             console.log('Sending data failed with', ex);
         });
-    },
-    Error(props) {
-        return (
-            <Jumbotron bsClass="jumbotron error">
-                <h3>Wystąpił błąd: {props.reason}</h3>
-            </Jumbotron>
-        );
     }
 };

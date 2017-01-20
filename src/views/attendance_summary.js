@@ -4,7 +4,7 @@ import AppHeader from '../components/header';
 import AttendeeList, { getAttendeeById } from '../components/attendee_list';
 import Session from '../components/session';
 import utils from '../utils';
-import './attendance_summary.css';
+import '../css/attendance_summary.css';
 
 class ShowDetails extends Component {
     constructor(props) {
@@ -138,24 +138,16 @@ class AttendeeSummaryList extends AttendeeList {
 }
 
 
-class AttendanceSummary extends Session {
-    constructor(props) {
-        super(props);
-        this.state = {
-            session: { "user": null },
-            errorStatus: false,
-        };
-    }
-
+class AttendanceSummary extends Component {
     render() {
         let title = (<p>Zestawienie obecności</p>);
         return (
             <div>
-                <AppHeader viewJSX={title} session={this.state.session} routes={this.props.routes} params={this.props.params} showBreadcrumbs />
-                {this.state.errorStatus ? <utils.Error reason="Nie można nawiązać połączenia z serwerem" /> : <AttendeeSummaryList fatalError={(error) => this.fatalErrorHandler(error)}/>}
+                <AppHeader viewJSX={title} session={this.props.session} routes={this.props.routes} params={this.props.params} showBreadcrumbs />
+                <AttendeeSummaryList fatalError={this.props.fatalErrorHandler}/>
             </div>
         );
     }
 }
 
-export default AttendanceSummary;
+export default Session(AttendanceSummary);

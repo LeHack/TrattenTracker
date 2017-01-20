@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Button, Modal, Panel, PanelGroup, ProgressBar, Table } from 'react-bootstrap';
 import utils from '../utils';
-import './main_user.css';
+import '../css/main_user.css';
 
 class Summary extends Component {
     constructor(props) {

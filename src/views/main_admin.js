@@ -3,9 +3,6 @@ import { Link } from 'react-router'
 import { Nav } from 'react-bootstrap';
 import cfg from '../route_config';
 
-/*
-* http://usejsdoc.org/
-*/
 
 function NavItem(props) {
     return (

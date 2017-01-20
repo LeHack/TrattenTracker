@@ -4,8 +4,8 @@ import { IndexRoute, Router, Route, browserHistory } from 'react-router';
 import App from './App';
 import Main from './views/main';
 import AttendanceSummary from './views/attendance_summary';
-import Attendance from './views/attendance';
-import Payments from './views/payments';
+import Attendance from './views/attendance_input';
+import Payments from './views/payments_input';
 import NotFound from './views/not_found';
 import cfg from './route_config';
 

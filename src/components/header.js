@@ -1,7 +1,7 @@
 import React from 'react';
 import { Jumbotron } from 'react-bootstrap';
 import Breadcrumbs from 'react-breadcrumbs';
-import './header.css';
+import '../css/header.css';
 
 function Login(props) {
     let userName = '';
@@ -28,6 +28,7 @@ function AppHeader(props) {
             {props.showBreadcrumbs &&
                 <Breadcrumbs separator=" / " routes={props.routes} params={props.params} setDocumentTitle={true}/>
             }
+            {props.children}
         </div>
     );
 }
