@@ -29,11 +29,12 @@ let GroupHandler = ComposedComponent => class extends Component {
         // join together data for all groups
         utils.fetchAttendees(group.group_id, (data) => function(self, data){
             let groupState = {};
-            let groupId = "GRP:" + group.group_id;
-            groupState[groupId] = true;
+            let labelId = "GRP:" + group.group_id;
+            groupState[labelId] = true;
             let attendeGroup = {
+                groupId: group.group_id,
                 label: {
-                    id: groupId,
+                    id: labelId,
                     name: group.name,
                 },
                 entries: data.attendees,
@@ -60,11 +61,17 @@ let GroupHandler = ComposedComponent => class extends Component {
             attendees.push.apply(attendees, group.attendees);
             Object.assign(groupState, group.attendeeGroup);
         }
+
         // if every group has been processed, join and update state
         this.setState({
             attendees: attendees,
             attendeeGroup: groupState,
         });
+
+        // if we have any postprocessing to do, run it now
+        if (this.props.runWithAttendees) {
+            this.props.runWithAttendees(attendees);
+        }
     }
 
     componentDidMount() {
@@ -85,23 +92,48 @@ let GroupHandler = ComposedComponent => class extends Component {
 };
 
 class ListView extends Component {
+    shouldShowProgressBar() {
+        let should = false;
+
+        if (this.props.shouldShowProgressBar) {
+            should = this.props.shouldShowProgressBar();
+        }
+        else {
+            should = (this.props.attendees.length === 0);
+        }
+
+        return should;
+    }
+
+    renderBody(entries) {
+        return (
+            <ListGroup>
+                {entries.map((a) => this.props.renderRow(a) )}
+            </ListGroup>
+        );
+    }
+
     render() {
+        let renderBody = this.props.renderBody;
+        if (!renderBody) {
+            // if not defined, use our ListGroup-based implementation
+            renderBody = this.renderBody.bind(this);
+        }
         return (
             <div>
                 {this.props.children}
-                {this.props.attendees.length > 0 ?
+                {this.shouldShowProgressBar() ?
+                    <ProgressBar active label="Ładowanie..." now={100} />
+                    :
                     <div>
                     {this.props.attendees.map((g) =>
                         <PanelGroup key={g.label.id}>
                             <Panel collapsible expanded={this.props.attendeeGroup[g.label.id]} header={g.label.name} onClick={() => this.props.toggleGroup(g.label.id)}>
-                                <ListGroup>
-                                    {g.entries.map((a) => this.props.renderRow(a) )}
-                                </ListGroup>
+                                {renderBody(g.entries)}
                             </Panel>
                         </PanelGroup>
                     )}
                     </div>
-                    : <ProgressBar active label="Ładowanie..." now={100} />
                 }
             </div>
         );

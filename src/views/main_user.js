@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
-import { Button, Modal, Panel, PanelGroup, ProgressBar, Table } from 'react-bootstrap';
+import { Panel, PanelGroup, ProgressBar, Table } from 'react-bootstrap';
+
+import { AttendanceDetails } from '../components/attendance_details';
 import utils from '../utils';
 import '../css/main_user.css';
 
@@ -52,70 +54,11 @@ class Summary extends Component {
     }
 }
 
-class ShowDetails extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            details: []
-        };
-    }
-
-    componentWillReceiveProps(nextProps) {
-        // skip if we're just hiding
-        if (!nextProps.showModal) {
-            return
-        }
-        let aid   = nextProps.data.attendee_id;
-        let month = nextProps.data.month;
-        utils.fetchMonthlyAttendance(aid, month, (data) => function(self, aid, data){
-            console.log(data);
-            self.setState({
-                details: data.attendance,
-            });
-        }(this, aid, data), this.props.fatalError);
-    }
-
-    render() {
-        return (
-            <div className="static-modal">
-                <Modal show={this.props.showModal} onHide={this.props.close}>
-                    <Modal.Header>
-                        <Modal.Title>{this.props.data.name}</Modal.Title>
-                    </Modal.Header>
-
-                    <Modal.Body>
-                        <Table responsive striped>
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Trening</th>
-                                    {this.props.data.card && <th>Karta</th>}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {this.state.details.map((det, index) =>
-                                    <tr key={det.date}>
-                                        <td>{index+1}</td>
-                                        <td>{det.date}</td>
-                                        {this.props.data.card && <td>{det.sport_card ? "Tak" : <b>Nie</b>}</td>}
-                                    </tr>
-                                )}
-                            </tbody>
-                        </Table>
-                    </Modal.Body>
-
-                    <Modal.Footer>
-                        <Button bsStyle="primary" onClick={this.props.close}>Zamknij</Button>
-                    </Modal.Footer>
-                </Modal>
-            </div>
-        );
-    }
-}
-
 class UserAttendance extends Component {
     constructor(props) {
         super(props);
+
+        this.hideDetails = this.hideDetails.bind(this);
         this.state = {
             details: [],
             showModal: false,
@@ -153,7 +96,7 @@ class UserAttendance extends Component {
                         )}
                     </tbody>
                 </Table>
-                <ShowDetails showModal={this.state.showModal} data={this.state.modalData} close={() => this.hideDetails()} />
+                <AttendanceDetails showModal={this.state.showModal} data={this.state.modalData} close={this.hideDetails} ref='details' />
             </span>
         );
     }
@@ -172,6 +115,7 @@ class UserAttendance extends Component {
 
     hideDetails() {
         this.setState({ showModal: false });
+        this.refs.details.close();
     }
 }
 

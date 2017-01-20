@@ -71,10 +71,12 @@ class Attendees(models.Model):
 class Attendance(models.Model):
     attendee        = models.ForeignKey(Attendees, related_name='attendance', verbose_name='Uczestnik')
     training        = models.ForeignKey(TrainingSchedule, related_name='attendance', verbose_name='Trening', null=True, blank=True)
-    date            = models.DateTimeField('czas zajęć', default=timezone.now)
+    date            = models.DateField('dzień zajęć')
+    added           = models.DateTimeField('czas rejestracji', default=timezone.now)
     used_sport_card = models.BooleanField('czy użył karty sportowej', default=False)
 
     class Meta:
+        unique_together = ['attendee', 'training', 'date']
         verbose_name = "obecność"
         verbose_name_plural = "Obecności"
 
@@ -86,10 +88,11 @@ class Attendance(models.Model):
         return training_group_id
 
     def get_training_date(self):
+        training_date = self.date.strftime('%Y-%m-%d')
         if self.training is not None:
-            training_date = "%s %s" % (self.date.strftime('%Y-%m-%d'), self.training.begin_time.strftime('%H:%M'))
+            training_date += " " + self.training.begin_time.strftime('%H:%M')
         else:
-            training_date = self.date.strftime('%Y-%m-%d %H:%M')
+            training_date += " " + self.added.strftime('%H:%M')
         return training_date
 
     def __str__(self):

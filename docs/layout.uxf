@@ -106,13 +106,14 @@ m2=0..1</panel_attributes>
       <x>530</x>
       <y>90</y>
       <w>180</w>
-      <h>100</h>
+      <h>120</h>
     </coordinates>
     <panel_attributes>*Attendance*
 --
 * training_schedule
 * attendee
 - date
+- added
 - used_sport_card</panel_attributes>
     <additional_attributes/>
   </element>

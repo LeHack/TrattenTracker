@@ -1,7 +1,11 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, DropdownButton, MenuItem, ListGroup, ListGroupItem, PanelGroup, Panel, ProgressBar } from 'react-bootstrap';
+import { DropdownButton, MenuItem, ListGroupItem } from 'react-bootstrap';
+import update from 'immutability-helper';
+
 import AppHeader  from '../components/header';
 import Session from '../components/session';
+import { SaveChanges } from '../components/save_button';
+import GroupAttendeeList from '../components/group_attendee_list';
 import utils from '../utils';
 import '../css/attendance_input.css';
 
@@ -68,85 +72,28 @@ class TrainingSelect extends Component {
     }
 }
 
-function SaveChanges(props) {
-    let clickHandler = props.saveHandler;
-    let text = "Gotowe";
-    if (props.sending) {
-        text = "Wysyłanie...";
-    }
-    if (props.disabled) {
-        clickHandler = function() { this.blur(); };
-    }
-    else if (!props.sending) {
-        text = "Wyślij zmiany";
-    }
-    return (
-        <ButtonGroup bsClass="btn-group saveControls">
-            <Button bsSize="sm" disabled={props.disabled} onClick={clickHandler}>{text}</Button>
-        </ButtonGroup>
-    );
-}
-
 class AttendanceInput extends Component {
     constructor(props) {
         super(props);
+
+        this.shouldShowProgressBar = this.shouldShowProgressBar.bind(this);
+        this.handleTrainingChange  = this.handleTrainingChange.bind(this);
+        this.findSportCardUsers    = this.findSportCardUsers.bind(this);
+        this.discardAll = this.discardAll.bind(this);
+        this.renderRow  = this.renderRow.bind(this);
+        this.saveAll    = this.saveAll.bind(this);
         this.state = {
-            attendees: [],
-            attendeeGroup: {},
             attendance: {},
             sportCards: {},
             training: null,
-            commsError: false,
             sending: false,
+            unsavedData: null,
+            loaded: false,
         };
-        this.groupLoading = [];
     }
 
-    componentDidMount() {
-        utils.fetchGroups((data) => function(self, data){
-            for (let group of data.groups) {
-                self.groupLoading.push({ id: group.group_id, done: false });
-                self.processGroup(group);
-            }
-        }(this, data), this.props.fatalError);
-    }
-
-    processGroup(group) {
-        // join together data for all groups
-        utils.fetchAttendees(group.group_id, (data) => function(self, data){
-            let groupState = {};
-            let groupId = "GRP:" + group.group_id;
-            groupState[groupId] = true;
-            let attendeGroup = {
-                label: {
-                    id: groupId,
-                    name: group.name,
-                },
-                entries: data.attendees,
-            };
-            for (let g of self.groupLoading) {
-                if (g.id === group.group_id) {
-                    g["attendees"] = [attendeGroup];
-                    g["attendeeGroup"] = groupState;
-                    g["done"] = true;
-                    break;
-                }
-            }
-            self.finishProcessing();
-        }(this, data), this.props.fatalError);
-    }
-
-    finishProcessing() {
-        let attendees = [];
-        let groupState = {};
+    findSportCardUsers(attendees) {
         let sportCards = {};
-        for (let group of this.groupLoading) {
-            if (!group.done) {
-                return;
-            }
-            attendees.push.apply(attendees, group.attendees);
-            Object.assign(groupState, group.attendeeGroup);
-        }
         for (let g of attendees) {
             for (let a of g.entries) {
                 if (!(a.attenee_id in sportCards)) {
@@ -157,53 +104,44 @@ class AttendanceInput extends Component {
         }
 
         // if every group has been processed, join and update state
-        this.setState({
-            attendees: attendees,
-            attendeeGroup: groupState,
-            sportCards: sportCards
-        });
-        // possible optimization, merge this to do only one setState call
-        if (this.pending_training_data) {
-            this.processTrainingData();
-        }
+        this.setState({ sportCards: sportCards });
     }
 
-    handleTrainingChange(training) {
-        let change = !this.state.commsError || confirm("Nie wszystkie dane zostały zapisane. Zmiana wyboru treningu spowodujeich utratę. Czy jesteś pewien?");
+    handleTrainingChange(training, force) {
+        let change = force || !this.state.unsavedData || alert("Nie wszystkie dane zostały zapisane. Najpierw zatwierdź lub anuluj niezachowane zmiany.");
         if (change) {
-            utils.fetchTrainingAttendance(training.date, training.time, (data) => function(self, data){
-                if (self.state.attendees.length === 0) {
-                    self.pending_training_data = {
-                        training: training,
-                        data: data,
-                    };
+            this.setState({loaded: false});
+            // define a function to fetch and handle attendance data
+            let handleAttendance = function(self, data) {
+                // make sure we have sportCards loaded
+                let loaded = (Object.keys(self.state.sportCards).length > 0);
+                if (!loaded) {
+                    // retry after a small delay (100 ms)
+                    setTimeout(() => handleAttendance(self, data), 100);
                 }
                 else {
-                    self.processTrainingData(training, data);
+                    // call REST backend for attendance data
+                    let attendance = {};
+                    let sportCards = {...self.state.sportCards};
+                    for (let att of data.attendance) {
+                        attendance[att.attendee_id] = true;
+                        sportCards[att.attendee_id]['used'] = att.sport_card;
+                    }
+                    self.setState({
+                        attendance: attendance,
+                        training: training,
+                        sportCards: sportCards,
+                        loaded: true,
+                    });
                 }
-            }(this, data), this.props.fatalError);
+            }
+            // now run the REST call and then use our function for processing
+            // if the sportCard data is not available, it will wait and retry
+            utils.fetchTrainingAttendance(training.date, training.time, (data) => function(self, data){
+                handleAttendance(self, data);
+            }(this, data), this.props.fatalErrorHandler);
         }
         return change;
-    }
-
-    processTrainingData(training, data) {
-        if (!training) {
-            training = this.pending_training_data["training"];
-        }
-        if (!data) {
-            data = this.pending_training_data["data"];
-        }
-        let attendance   = {};
-        let sportCards = {...this.state.sportCards};
-        for (let att of data.attendance) {
-            attendance[att.attendee_id] = true;
-            sportCards[att.attendee_id]['used'] = att.sport_card;
-        }
-        this.setState({
-            attendance: attendance,
-            training: training,
-            sportCards: sportCards,
-        });
     }
 
     updateAttendance(attendeeId, e) {
@@ -232,46 +170,61 @@ class AttendanceInput extends Component {
         // update state
         attendance[attendeeId] = isPresent;
         sportCard[attendeeId]['used'] = usedSportCard;
-        let send = !this.state.commsError;
+        let send = !this.state.unsavedData;
         this.setState({
             attendance: attendance,
             sportCards: sportCard,
             sending: send,
         });
+        let dataPack = {
+            attendee_id: attendeeId,
+            is_present: isPresent,
+            has_sport_card: (ownsSportCard && usedSportCard)
+        };
         // now send the data to backend
         if (send) {
             utils.sendAttendance({
                 training: this.state.training,
-                attendance: [{
-                    attendee_id: attendeeId,
-                    is_present: isPresent,
-                    has_sport_card: (ownsSportCard && usedSportCard)
-                }],
+                attendance: [dataPack],
             },
-            (ex) => function(ex, self) {
+            (ex) => function(ex, self, dataPack) {
                 console.log('Sending attendance data failed with', ex);
-                self.setState({sending: false, commsError: true});
-            }(ex, this),
+                let unsaved = (self.state.unsavedData || {});
+                self.setState({
+                    sending: false,
+                    unsavedData: update(unsaved, {
+                        [attendeeId]: {$set: dataPack}
+                    }),
+                });
+            }(ex, this, dataPack),
             () => function(self){
                 self.setState({sending: false});
             }(this));
+        }
+        else {
+            // only store as unsaved data
+            this.setState({
+                unsavedData: update(this.state.unsavedData, {
+                    [attendeeId]: {$set: dataPack}
+                }),
+            });
         }
 
         return false;
     }
 
     saveAll() {
-        // prepare data to send
+        // ensure we have anything to send
+        let unsaved = this.state.unsavedData;
+        if (!unsaved) {
+            return;
+        }
+        console.log("Got unsaved data", this.state.unsavedData);
+        // convert a list
         let attendance = [];
-        for (let group of this.state.attendees) {
-            for (let a of group.entries) {
-                let sportCard = (this.state.sportCards[a.attendee_id] || false);
-                let isPresent = (this.state.attendance[a.attendee_id] || false);
-                attendance.push({
-                    attendee_id: a.attendee_id,
-                    is_present: isPresent,
-                    has_sport_card: (sportCard && sportCard['owns'] && sportCard['used'])
-                });
+        for (let aid in unsaved) {
+            if (unsaved.hasOwnProperty(aid)) {
+                attendance.push( unsaved[aid] );
             }
         }
         // send it
@@ -282,19 +235,27 @@ class AttendanceInput extends Component {
         },
         (ex) => function(ex, self) {
             console.log('Sending attendance data failed with', ex);
-            self.setState({commsError: true, sending: false});
+            self.setState({sending: false});
             alert("Serwer nie odpowiada. Prosimy spróbować później.");
         }(ex, this),
         (result) => function(self, result) {
-            // on success, reset the commsError
-            self.setState({commsError: false, sending: false});
+            // on success, reset sending and unsavedData
+            self.setState({sending: false, unsavedData: null});
         }(this, result));
+    }
+
+    discardAll() {
+        // reset state
+        this.setState({sending: false, unsavedData: null, loaded: false});
+        // force refreshing the view
+        this.handleTrainingChange(this.state.training, true);
     }
 
     getBsStyle(attendeeId) {
         let isPresent     = this.state.attendance[attendeeId];
-        let ownsSportCard = this.state.sportCards[attendeeId]['owns'];
-        let usedSportCard = this.state.sportCards[attendeeId]['used'];
+        let sportCardInfo = this.state.sportCards[attendeeId];
+        let ownsSportCard = (sportCardInfo && sportCardInfo['owns']);
+        let usedSportCard = (sportCardInfo && sportCardInfo['used']);
 
         let style = null;
         if (isPresent && ownsSportCard && !usedSportCard) {
@@ -307,54 +268,32 @@ class AttendanceInput extends Component {
         return style;
     }
 
-    render() {
+    renderRow(a) {
         return (
-            <div>
-                <div className="controlBar">
-                    <SaveChanges disabled={!this.state.commsError} saveHandler={() => this.saveAll()} sending={this.state.sending} />
-                    <TrainingSelect changeHandler={(training) => this.handleTrainingChange(training)} fatalError={this.props.fatalError}/>
-                </div>
-                {this.state.attendees.length > 0 ?
-                    <div>
-                        {this.state.attendees.map((g) =>
-                            <PanelGroup>
-                                <Panel collapsible expanded={this.state.attendeeGroup[g.label.id]} header={g.label.name} onClick={() => this.toggleGroup(g.label.id)}>
-                                    <ListGroup>
-                                        {g.entries.map((a) =>
-                                            <ListGroupItem bsStyle={this.getBsStyle(a.attendee_id)} key={a.attendee_id} onClick={(e) => this.updateAttendance(a.attendee_id, e)}>
-                                                {a.name}
-                                            </ListGroupItem>
-                                        )}
-                                    </ListGroup>
-                                </Panel>
-                            </PanelGroup>
-                        )}
-                    </div>
-                    : <ProgressBar active label="Ładowanie..." now={100} />
-                }
-            </div>
+            <ListGroupItem bsStyle={this.getBsStyle(a.attendee_id)} key={a.attendee_id} onClick={(e) => this.updateAttendance(a.attendee_id, e)}>
+                {a.name}
+            </ListGroupItem>
         );
     }
 
-    toggleGroup(id) {
-        let groupState = {...this.state.attendeeGroup};
-        groupState[id] = !groupState[id];
-        this.setState({
-            attendeeGroup: groupState,
-        });
+    shouldShowProgressBar() {
+        return !this.state.loaded;
     }
-}
 
-class AttendanceView extends Component {
     render() {
         let title = (<p>Wprowadzanie obecności</p>);
         return (
             <div>
                 <AppHeader viewJSX={title} session={this.props.session} routes={this.props.routes} params={this.props.params} showBreadcrumbs />
-                <AttendanceInput fatalError={this.props.fatalErrorHandler}/>
+                <GroupAttendeeList renderRow={this.renderRow} fatalError={this.props.fatalErrorHandler} runWithAttendees={this.findSportCardUsers} shouldShowProgressBar={this.shouldShowProgressBar}>
+                    <div className="controlBar">
+                        <SaveChanges disabled={!this.state.unsavedData} saveHandler={this.saveAll} discardHandler={this.discardAll} sending={this.state.sending} />
+                        <TrainingSelect changeHandler={this.handleTrainingChange} fatalError={this.props.fatalError}/>
+                    </div>
+                </GroupAttendeeList>
             </div>
         );
     }
 }
 
-export default Session(AttendanceView);
+export default Session(AttendanceInput);

@@ -99,8 +99,12 @@ def list_attendance(request, date=None, time=None, month=None, attendee_id=None)
         attendance.append({
             "attendee_id": a.attendee.pk,
             "date": a.get_training_date(),
+            # for admin view - should be filtered when fetching data for users
+            "added": a.added.strftime('%Y-%m-%d %H:%M'),
             "sport_card": a.used_sport_card,
         })
+
+    attendance = sorted(attendance, key=lambda a: a["date"])
     return JsonResponse({"attendance": attendance})
 
 
@@ -163,7 +167,7 @@ def update_attendance(request, *args, **kwargs):
     if request.method == "POST":
         attendance    = json.loads(request.POST["attendance"]);
         training      = get_object_or_404(TrainingSchedule, pk=request.POST["training_id"])
-        training_time = timezone.make_aware(dateparse.parse_datetime(request.POST["training_time"]))
+        training_time = request.POST["training_time"].split(" ")[0]
         for att in attendance:
             params = {
                 "attendee": get_object_or_404(Attendees, pk=att["attendee_id"]),
