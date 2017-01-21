@@ -57,6 +57,9 @@ module.exports = {
     fetchGroupOutstanding: function(groupId, resultHandler, errHandler) {
         fetchFromBackend('/rest/outstanding/group/' + groupId, resultHandler, errHandler);
     },
+    fetchMonthlyFee: function(attendeeId, resultHandler, errHandler) {
+        fetchFromBackend('/rest/fees/' + attendeeId, resultHandler, errHandler);
+    },
     sendAttendance: function(params, errorHandler, successHandler) {
         var form = new FormData();
         form.append('attendance', JSON.stringify(params['attendance']));

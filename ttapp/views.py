@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone, dateparse
 from ttapp.models import Groups, Attendance, Attendees, Payment, MonthlyBalance, TrainingSchedule
-from ttapp.utils import get_trainings_in_month, calculate_attendance_summary
+from ttapp.utils import get_trainings_in_month, calculate_attendance_summary, PaymentUtil
 
 
 def list_groups(request):
@@ -144,11 +144,19 @@ def get_current_outstanding(request, attendee_id=None, group_id=None):
         attendees.append(get_object_or_404(Attendees, pk=attendee_id))
 
     amount = {}
+    pu = PaymentUtil()
     for a in attendees:
-        # TODO: call payment calculation lib
-        amount[a.pk] = 10;
+        amount[a.pk] = pu.get_total_current_balance(a);
 
     return JsonResponse({ "amount": amount })
+
+
+def get_monthly_fee(request, attendee_id):
+    pu = PaymentUtil()
+    attendee = get_object_or_404(Attendees, pk=attendee_id);
+    now = datetime.now()
+    return JsonResponse({ "amount": pu.get_monthly_payment(now.year, now.month, attendee) })
+
 
 # TODO: Implement session handling and make this dynamic
 def get_session_status(request):

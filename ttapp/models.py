@@ -67,6 +67,9 @@ class Attendees(models.Model):
     def __str__(self):
         return "%s %s (%s)" % (self.first_name, self.last_name, str(self.group))
 
+    def get_monthly_fee(self):
+        return self.group.monthly_fee - self.discount
+
 
 class Attendance(models.Model):
     attendee        = models.ForeignKey(Attendees, related_name='attendance', verbose_name='Uczestnik')

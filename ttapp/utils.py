@@ -1,4 +1,4 @@
-import locale, threading
+import calendar, locale, threading
 
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta
@@ -177,20 +177,18 @@ class PaymentUtil:
         if attendee.has_sport_card:
             return self.monthly_payment_based_on_attendance(year, month, attendee)
         # Logic for calculate monthly payment
-        return attendee.group.monthly_fee
+        return attendee.get_monthly_fee()
 
     def monthly_payment_based_on_attendance(self, year, month, attendee):
-        start = date(year, month, 1)
-        attendance_count = Attendance.objects.filter(attendee=attendee,
-                                                     date__gte=start,
-                                                     date__lte=self.last_day_of_month(month)).count()
-        return (attendee.group.monthly_fee - attendee.discount) - (attendance_count * self.money_from_sport_card)
+        attendance_count = Attendance.objects.filter(
+            attendee=attendee,
+            date__startswith="%04d-%02d" % (year, month)
+        ).count()
+        return attendee.get_monthly_fee() - (attendance_count * self.money_from_sport_card)
 
     @staticmethod
     def last_day_of_month(month):
-        time = datetime.now().replace(month=month)
-        next_month = time.replace(day=28) + timedelta(days=4)  # this will never fail
-        return next_month - timedelta(days=next_month.day)
+        return calendar.monthrange(datetime.now().year, month)[1]
 
     '''
     Utility method for getting total current balance
@@ -218,6 +216,6 @@ class PaymentUtil:
 
         for year, nested_map in attendances_map.items():
             for month, counter in nested_map.items():
-                total_balance += (attendee.group.monthly_fee - attendee.discount) - (counter * self.money_from_sport_card)
+                total_balance += attendee.get_monthly_fee() - (counter * self.money_from_sport_card)
 
         return total_balance
