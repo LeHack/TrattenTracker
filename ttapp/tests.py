@@ -220,16 +220,23 @@ def seed_test_data():
     ]
 
     for at in fakeData:
-        a = Attendees(group=at["group"], first_name=at["first_name"], last_name=at["last_name"], has_sport_card=at["sport_card"])
+        at_params = {
+            "group": at["group"],
+            "first_name": at["first_name"],
+            "last_name": at["last_name"],
+            "has_sport_card": at["sport_card"]
+        }
+        if "discount" in at:
+            at_params["discount"] = at["discount"]
+        a = Attendees(**at_params)
         a.save()
+
         for tr in at["attendance"]:
             att_params = {
                 "attendee": a, "training": tr["training"], "date": tr["date"]
             }
             if "card" in tr:
                 att_params["used_sport_card"] = tr["card"]
-            if "discount" in tr:
-                att_params["discount"] = tr["discount"]
 
             Attendance(**att_params).save()
 
