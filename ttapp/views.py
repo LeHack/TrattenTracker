@@ -200,3 +200,18 @@ def update_attendance(request, *args, **kwargs):
                     pass
 
     return JsonResponse({"request": "OK"})
+
+
+@csrf_exempt
+def update_payment(request, *args, **kwargs):
+    if request.method == "POST":
+        payment = json.loads(request.POST["payment"]);
+        params = {
+            "attendee": get_object_or_404(Attendees, pk=payment["attendee_id"]),
+            "amount": payment["amount"],
+            "tax_reported": payment["tax"],
+            "type": payment["type"],
+        }
+        Payment(**params).save()
+
+    return JsonResponse({"request": "OK"})

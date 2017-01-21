@@ -78,5 +78,22 @@ module.exports = {
         }).catch(function(ex) {
             console.log('Sending data failed with', ex);
         });
+    },
+    sendPayment: function(params, successHandler, errorHandler) {
+        var form = new FormData();
+        form.append('payment', JSON.stringify(params));
+        window.fetch('/rest/payments', {
+            method: 'POST',
+            body: form,
+        }).then(function(result){
+            if (result.status !== 200) {
+                errorHandler(result);
+            }
+            else if (successHandler) {
+                successHandler(result);
+            }
+        }).catch(function(ex) {
+            console.log('Sending data failed with', ex);
+        });
     }
 };

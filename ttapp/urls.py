@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^attendance/attendee/summary/(?P<attendee_id>[0-9]+)$', views.attendance_summary, name='group_attendance_summary_6months'),
     url(r'^attendance/attendee/split-summary/(?P<attendee_id>[0-9]+)$', views.attendance_summary, {'split_by_month': True}, name='attendance_summary_6months_split_by_month'),
     url(r'^attendance/attendee/summary/(?P<attendee_id>[0-9]+)/(?P<year>[0-9]+)/(?P<month>[0-9]+)$', views.attendance_summary, name='attendance_summary_year_month'),
+    url(r'^payments$', views.update_payment, name='update_payments'),
     url(r'^payments/(?P<attendee_id>[0-9]+)$', views.list_payments, name='list_payments'),
     url(r'^fees/(?P<attendee_id>[0-9]+)$', views.get_monthly_fee, name='get_monthly_fee'),
     url(r'^outstanding/attendee/(?P<attendee_id>[0-9]+)$', views.get_current_outstanding, name='get_current_outstanding'),
