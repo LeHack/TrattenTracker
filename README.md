@@ -20,3 +20,6 @@ Autorzy: Łukasz Hejnak, Piotr Skurski, Łukasz Malinowski
 12. wejdź na trattentracker.pl:3000 (*3000* nie 8000!)
 13. ???
 14. profit $$$
+
+## Przykład konfiguracji apache
+http://github.com/LeHack/TrattenTracker/tree/master/docs/apache/example.vhost

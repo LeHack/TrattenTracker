@@ -1,0 +1,29 @@
+WSGIPythonPath /home/trattentracker/git:/home/trattentracker/git/lib/python3.4/site-packages
+
+<VirtualHost *>
+  ServerName    example.com
+  ServerAlias   www.example.com
+  DocumentRoot /home/trattentracker/git/assets/
+  LogLevel info
+
+  WSGIScriptAlias /rest /home/trattentracker/git/trattrack/wsgi.py
+  WSGIScriptAlias /admin /home/trattentracker/git/trattrack/wsgi.py
+
+  Alias /robots.txt /home/trattentracker/git/assets/robots.txt
+  Alias /static/admin /home/trattentracker/git/assets/admin/
+
+  <Directory /home/trattentracker/git/assets>
+    Require all granted
+  </Directory>
+
+  <Directory /home/trattentracker/git/trattrack>
+    <Files wsgi.py>
+      Require all granted
+    </Files>
+  </Directory>
+
+  ErrorLog "/var/log/apache2/trattentracker_error.log"
+
+  WSGIDaemonProcess trattrack.wsgi.application user=trattentracker group=trattentracker python-path=/home/trattentracker/git:/home/trattentracker/git/lib/python3.4/site-packages
+  WSGIProcessGroup  trattrack.wsgi.application
+</VirtualHost>
