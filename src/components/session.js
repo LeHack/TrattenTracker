@@ -155,7 +155,7 @@ class LoginModal extends Component {
                             </FormGroup>
                             <FormGroup controlId="password" validationState={this.getValidationState("password")}>
                                 <ControlLabel>Hasło</ControlLabel>
-                                <FormControl type="text" value={this.state.password} placeholder="Hasło" onChange={this.handleChange} onKeyPress={this.handleKeyPress} />
+                                <FormControl type="password" value={this.state.password} placeholder="Hasło" onChange={this.handleChange} onKeyPress={this.handleKeyPress} />
                                 <FormControl.Feedback />
                             </FormGroup>
                         </form>

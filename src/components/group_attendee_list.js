@@ -123,7 +123,7 @@ class ListView extends Component {
             <div>
                 {this.props.children}
                 {this.shouldShowProgressBar() ?
-                    <ProgressBar active label="Ładowanie..." now={100} />
+                    <ProgressBar active label="Ładowanie listy ćwiczących..." now={100} />
                     :
                     <div>
                     {this.props.attendees.map((g) =>

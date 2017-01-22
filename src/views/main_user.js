@@ -184,10 +184,8 @@ export default class UserSummary extends Component {
         };
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.user !== null) {
-            this.setState({user: nextProps.user});
-        }
+    componentDidMount() {
+        this.setState({user: this.props.user});
     }
 
     changePanel(i) {
@@ -211,7 +209,7 @@ export default class UserSummary extends Component {
                             <UserPayments fatalError={this.props.fatalError} user={this.props.user} />
                         </Panel>
                     </PanelGroup>
-                    : <ProgressBar active label="Ładowanie..." now={100} />
+                    : <ProgressBar active label="Ładowanie panelu użytkownika..." now={100} />
                 }
             </div>
         );
