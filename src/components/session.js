@@ -20,7 +20,6 @@ var Session = ComposedComponent => class extends Component {
     }
 
     fatalErrorHandler(error) {
-        console.log("Debug", error);
         if (error instanceof Response) {
             error = "Nie można nawiązać połączenia z serwerem."
         }

@@ -1,25 +1,39 @@
-from django.conf.urls import url
+from django.conf.urls import include, url
 from . import views
 
 urlpatterns = [
-    url(r'^groups$', views.list_groups, name='list_groups'),
-    url(r'^attendees$', views.list_attendees, name='list_attendees'),
-    url(r'^attendees/group/(?P<group_id>[0-9]+)$', views.list_attendees, name='list_attendees_by_group'),
-    url(r'^trainings$', views.list_trainings, name='list_current_month_trainings'),
-    url(r'^trainings/(?P<year>[0-9]+)/(?P<month>[0-9]+)$', views.list_trainings, name='list_trainings'),
-    url(r'^attendance$', views.update_attendance, name='update_attendance'),
-    url(r'^attendance/(?P<date>[0-9\-]+)/(?P<time>[0-9:]+)$', views.list_attendance, name='list_attendance'),
-    url(r'^attendance/(?P<attendee_id>[0-9]+)/(?P<month>[0-9-]+)$', views.list_attendance, name='list_attendance_monthly'),
-    url(r'^attendance/group/summary/(?P<group_id>[0-9]+)$', views.attendance_summary, name='attendance_summary_6months'),
-    url(r'^attendance/attendee/summary/(?P<attendee_id>[0-9]+)$', views.attendance_summary, name='group_attendance_summary_6months'),
-    url(r'^attendance/attendee/split-summary/(?P<attendee_id>[0-9]+)$', views.attendance_summary, {'split_by_month': True}, name='attendance_summary_6months_split_by_month'),
-    url(r'^attendance/attendee/summary/(?P<attendee_id>[0-9]+)/(?P<year>[0-9]+)/(?P<month>[0-9]+)$', views.attendance_summary, name='attendance_summary_year_month'),
-    url(r'^payments$', views.update_payment, name='update_payments'),
-    url(r'^payments/(?P<attendee_id>[0-9]+)$', views.list_payments, name='list_payments'),
-    url(r'^fees/(?P<attendee_id>[0-9]+)$', views.get_monthly_fee, name='get_monthly_fee'),
-    url(r'^outstanding/attendee/(?P<attendee_id>[0-9]+)$', views.get_current_outstanding, name='get_current_outstanding'),
-    url(r'^outstanding/group/(?P<group_id>[0-9]+)$', views.get_current_outstanding, name='get_current_group_outstanding'),
-    url(r'^session/get$', views.get_session_status, name='get_session_status'),
-    url(r'^session/login$', views.login, name='login'),
-    url(r'^session/logout', views.logout, name='logout')
+    url(r'^list/', include([
+        url(r'^groups$', views.list_groups),
+        url(r'^attendees$', views.list_attendees),
+        url(r'^attendees/group:(?P<group_id>[0-9]+)$', views.list_attendees),
+        url(r'^trainings$', views.list_trainings),
+        url(r'^attendance/', include([
+            url(r'^attendee:(?P<attendee_id>[0-9]+)/month:(?P<month>[0-9-]+)$', views.list_attendance),
+            url(r'^date:(?P<date>[0-9\-]+)/time:(?P<time>[0-9:]+)$', views.list_attendance),
+        ])),
+        url(r'^payments/attendee:(?P<attendee_id>[0-9]+)$', views.list_payments),
+    ])),
+    url(r'^summarize/', include([
+        url(r'^attendance/', include([
+            url(r'^group:(?P<group_id>[0-9]+)$', views.attendance_summary),
+            url(r'^attendee:(?P<attendee_id>[0-9]+)/', include([
+                url(r'^total$', views.attendance_summary),
+                url(r'^monthly$', views.attendance_summary, {'split_by_month': True}),
+            ])),
+        ])),
+        url(r'^payments/', include([
+            url(r'^attendee:(?P<attendee_id>[0-9]+)$', views.get_current_outstanding),
+            url(r'^group:(?P<group_id>[0-9]+)$', views.get_current_outstanding),
+        ])),
+    ])),
+    url(r'^get/', include([
+        url(r'^session$', views.get_session_status),
+        url(r'^fee/attendee:(?P<attendee_id>[0-9]+)$', views.get_monthly_fee),
+    ])),
+    url(r'^update/', include([
+        url(r'^attendance$', views.update_attendance),
+        url(r'^payments', views.update_payment),
+    ])),
+    url(r'^login$', views.login),
+    url(r'^logout', views.logout),
 ]

@@ -2,7 +2,7 @@ import calendar, hashlib, shortuuid
 from datetime import timedelta
 from django.utils import timezone
 from django.db import models
-from trattrack import settings
+from django.conf import settings
 
 
 class Groups(models.Model):

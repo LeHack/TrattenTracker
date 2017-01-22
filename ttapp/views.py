@@ -160,14 +160,15 @@ def get_monthly_fee(request, attendee_id):
 
 
 def get_session_status(request):
-    status = { "logged in": False }
+    out = None
 
     try:
-        status = Auth(request=request).as_response()
+        auth = Auth(request=request)
+        out = auth.set_cookie( JsonResponse( auth.as_response() ) )
     except (Auth.BadCookie, Auth.BadCredentials):
-        pass
+        out = JsonResponse({ "logged in": False })
 
-    return JsonResponse(status)
+    return out
 
 # TODO: fix
 @csrf_exempt

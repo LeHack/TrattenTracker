@@ -188,6 +188,9 @@ class AttendanceInput extends Component {
                 training: this.state.training,
                 attendance: [dataPack],
             },
+            (result) => function(self, result){
+                self.setState({sending: false});
+            }(this, result),
             (ex) => function(ex, self, dataPack) {
                 console.log('Sending attendance data failed with', ex);
                 let unsaved = (self.state.unsavedData || {});
@@ -197,10 +200,7 @@ class AttendanceInput extends Component {
                         [attendeeId]: {$set: dataPack}
                     }),
                 });
-            }(ex, this, dataPack),
-            () => function(self){
-                self.setState({sending: false});
-            }(this));
+            }(ex, this, dataPack));
         }
         else {
             // only store as unsaved data
@@ -220,7 +220,6 @@ class AttendanceInput extends Component {
         if (!unsaved) {
             return;
         }
-        console.log("Got unsaved data", this.state.unsavedData);
         // convert a list
         let attendance = [];
         for (let aid in unsaved) {
@@ -234,15 +233,15 @@ class AttendanceInput extends Component {
             training: this.state.training,
             attendance: attendance,
         },
+        (result) => function(self, result) {
+            // on success, reset sending and unsavedData
+            self.setState({sending: false, unsavedData: null});
+        }(this, result),
         (ex) => function(ex, self) {
             console.log('Sending attendance data failed with', ex);
             self.setState({sending: false});
             alert("Serwer nie odpowiada. Prosimy spróbować później.");
-        }(ex, this),
-        (result) => function(self, result) {
-            // on success, reset sending and unsavedData
-            self.setState({sending: false, unsavedData: null});
-        }(this, result));
+        }(ex, this));
     }
 
     discardAll() {
