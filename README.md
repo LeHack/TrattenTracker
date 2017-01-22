@@ -23,3 +23,6 @@ Autorzy: Łukasz Hejnak, Piotr Skurski, Łukasz Malinowski
 
 ## Przykład konfiguracji apache
 http://github.com/LeHack/TrattenTracker/tree/master/docs/apache/example.vhost
+
+Należy także ustawić zmienną środowiskową DJANGO_SETTINGS_MODULE, np. dodając na końcu bin/activate (virtualenv):
+> export DJANGO_SETTINGS_MODULE="trattrack.settings_prod"
