@@ -1,6 +1,8 @@
+import calendar, hashlib, shortuuid
+from datetime import timedelta
 from django.utils import timezone
 from django.db import models
-import calendar
+from trattrack import settings
 
 
 class Groups(models.Model):
@@ -52,12 +54,21 @@ class CancelledTrainings(models.Model):
 
 
 class Attendees(models.Model):
+    ATTENDEE = 'ATTENDEE'
+    SENSEI = 'SENSEI'
+    ROLES = (
+        (ATTENDEE, 'Uczestnik'),
+        (SENSEI,   'Prowadzący'),
+    )
     group          = models.ForeignKey(Groups, related_name='attendees', verbose_name="Grupa")
     first_name     = models.CharField('imię', max_length=100)
     last_name      = models.CharField('nawisko', max_length=100)
-    assigned_pin   = models.CharField('kod dostępu', max_length=10, blank=True, null=True)
     has_sport_card = models.BooleanField('czy posiada kartę sportową', default=False)
     discount       = models.IntegerField('zniżka', blank=True, null=True, default=0)
+    login          = models.CharField('login', max_length=100, unique=True)
+    password       = models.CharField('hasło', max_length=100)
+    role           = models.CharField('rola', max_length=10, choices=ROLES, default=ATTENDEE)
+    active         = models.BooleanField('czy ćwiczy', default=True)
 
     class Meta:
         unique_together = (("group", "first_name", "last_name"),)
@@ -69,6 +80,56 @@ class Attendees(models.Model):
 
     def get_monthly_fee(self):
         return self.group.monthly_fee - self.discount
+
+    @staticmethod
+    def hash_password(new_pass):
+        # TODO:
+        #     this is a very weak hash, we need to at least add user pk here,
+        #     but this will require a couple more changes to the auth module
+        hash_base = new_pass + settings.SECRET_KEY
+        return hashlib.sha1( hash_base.encode('utf-8') ).hexdigest()
+
+    def save(self, *args, **kwargs):
+        if self._state.adding or self.password != self._loaded_values['password']:
+            self.password = self.hash_password(self.password)
+        super(Attendees, self).save(*args, **kwargs)
+
+
+class Session(models.Model):
+    secret    = models.CharField(max_length=15, blank=True)
+    user      = models.ForeignKey(Attendees)
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            shortuuid.set_alphabet('1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
+            self.secret = shortuuid.uuid()[:15]
+        super(Session, self).save(*args, **kwargs)
+
+
+    def bump(self):
+        self.timestamp = timezone.now()
+        self.save()
+
+    def cookie_value(self):
+        return "%s:%s" % (self.secret, self.pk)
+
+    def __str__(self):
+        return "for %s until %s" % (self.user, self.timestamp.strftime("%H:%M"))
+
+    @staticmethod
+    def extract_id(value):
+        return value.split(':')[1]
+
+    @staticmethod
+    def getAndCheck(value):
+        s = Session.objects.get(pk=Session.extract_id(value))
+        if s.cookie_value() == value and s.timestamp + timedelta(minutes = 10) < timezone.now():
+            raise Session.Invalid("Sesja wygasła")
+        return s
+
+    class Invalid(Exception):
+        pass
 
 
 class Attendance(models.Model):

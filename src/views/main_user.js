@@ -88,7 +88,7 @@ class UserAttendance extends Component {
                     </thead>
                     <tbody>
                         {this.state.details.map((det) =>
-                            <tr key={det.month} onClick={() => this.showDetails(det)}>
+                            <tr key={det.month} onClick={(e) => this.showDetails(det, e)}>
                                 <td>{det.month}</td>
                                 <td>{det.basic.count} ({det.basic.freq}%)</td>
                                 <td>{det.extra.count} ({det.extra.freq}%)</td>
@@ -101,7 +101,9 @@ class UserAttendance extends Component {
         );
     }
 
-    showDetails(detailRow) {
+    showDetails(detailRow, e) {
+        e.stopPropagation();
+        e.target.blur();
         this.setState({
             showModal: true,
             modalData: {

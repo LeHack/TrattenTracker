@@ -15,7 +15,7 @@ class GroupsAdmin(admin.ModelAdmin):
     inlines = [TrainingScheduleInline]
 
 class AttendeesAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'assigned_pin', 'has_sport_card')
+    list_display = ('__str__', 'login', 'has_sport_card', 'role', 'active')
     list_filter = ['group', 'has_sport_card']
     search_fields = ['first_name', 'last_name']
     ordering = ('last_name', 'first_name')

@@ -51,6 +51,7 @@ class PaymentModal extends Component {
 
     toggleType(e) {
         e.stopPropagation();
+        e.target.blur();
         let nextType = 'CASH';
         if (this.state.type === nextType){
             nextType = 'TRANSFER';
@@ -60,6 +61,7 @@ class PaymentModal extends Component {
 
     toggleTax(e) {
         e.stopPropagation();
+        e.target.blur();
         this.setState({ tax: !this.state.tax });
     }
 
@@ -98,7 +100,7 @@ class PaymentModal extends Component {
 									<FormControl type="text" value={this.state.fee} placeholder="zł" onChange={this.handleChange} />
 									<FormControl.Feedback />
 								</FormGroup>
-								<Button block bsStyle={this.state.tax ? "primary" : "danger" } onClick={this.toggleTax}>Zapisane na kasie fiskalnej</Button>
+								<Button block bsStyle={this.state.tax ? "primary" : "danger" } onClick={this.toggleTax}>{this.state.tax ? "Zapisane" : "Nie zapisane"} na kasie fiskalnej</Button>
 								<Button block onClick={this.toggleType}>{this.state.type === "CASH" ? "Gotówka" : "Przelew"}</Button>
 							</form>
                         }
@@ -155,6 +157,7 @@ class PaymentsInput extends Component {
     showPaymentForm(attendee, e) {
         // make sure this click doesn't reach the panel container
         e.stopPropagation();
+        e.target.blur();
         this.setState({
             showModal: true,
             modalData: attendee,

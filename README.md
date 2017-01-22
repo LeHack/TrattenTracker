@@ -10,7 +10,7 @@ Autorzy: Łukasz Hejnak, Piotr Skurski, Łukasz Malinowski
 3. cd TrattenTracker
 4. virtualenv .
 5. source bin/activate
-6. pip install Django==1.10.3 python-dateutil==2.6.0
+6. pip install Django==1.10.3 python-dateutil==2.6.0 shortuuid==0.4.3
 7. dodaj nową domenę (np. trattentracker.pl) w /etc/hosts wskazującą na 127.0.0.100, np.
         sudo echo "127.0.0.100   trattentracker.pl" >> /etc/hosts
 8. python manage.py migrate

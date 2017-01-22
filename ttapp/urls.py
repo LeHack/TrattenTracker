@@ -19,5 +19,7 @@ urlpatterns = [
     url(r'^fees/(?P<attendee_id>[0-9]+)$', views.get_monthly_fee, name='get_monthly_fee'),
     url(r'^outstanding/attendee/(?P<attendee_id>[0-9]+)$', views.get_current_outstanding, name='get_current_outstanding'),
     url(r'^outstanding/group/(?P<group_id>[0-9]+)$', views.get_current_outstanding, name='get_current_group_outstanding'),
-    url(r'^session$', views.get_session_status, name='get_session_status')
+    url(r'^session/get$', views.get_session_status, name='get_session_status'),
+    url(r'^session/login$', views.login, name='login'),
+    url(r'^session/logout', views.logout, name='logout')
 ]

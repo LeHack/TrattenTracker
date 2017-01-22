@@ -65,7 +65,8 @@ def seed_test_data():
             "group": g1,
             "first_name": "Jan",
             "last_name": "Kowalski",
-            "sport_card": False,
+            "login": "jkowalski",
+            "password": "haslo",
             "attendance": [
                 { "training": g1t1, "date": "2016-12-05" },
                 { "training": g1t2, "date": "2016-12-08" },
@@ -91,7 +92,9 @@ def seed_test_data():
             "group": g1,
             "first_name": "Marian",
             "last_name": "Nowak",
-            "sport_card": True,
+            "login": "mnowak",
+            "password": "haslo",
+            "has_sport_card": True,
             "discount": 20,
             "attendance": [
                 { "training": g1t1, "date": "2016-12-05" },
@@ -116,7 +119,9 @@ def seed_test_data():
             "group": g1,
             "first_name": "Robert",
             "last_name": "Zamły",
-            "sport_card": True,
+            "login": "rzamly",
+            "password": "haslo",
+            "has_sport_card": True,
             "attendance": [
                 { "training": g1t1, "date": "2016-12-01", "card": True },
                 { "training": g1t1, "date": "2016-12-05", "card": True },
@@ -135,8 +140,25 @@ def seed_test_data():
             "group": g1,
             "first_name": "Zofia",
             "last_name": "Pomak",
-            "sport_card": False,
+            "login": "zpomak",
+            "password": "haslo",
             "discount": 20,
+            "attendance": [
+                { "training": g1t1, "date": "2016-12-05" },
+                { "training": mixt1, "date": "2016-12-12" },
+                { "training": mixt2, "date": "2016-12-15" },
+                { "training": mixt1, "date": "2016-12-19" },
+                { "training": mixt2, "date": "2016-12-29" },
+                { "training": mixt1, "date": "2017-01-02" },
+            ],
+        },
+        {
+            "group": g1,
+            "first_name": "Slackish",
+            "last_name": "Slacker",
+            "login": "sslack",
+            "password": "haslo",
+            "active": False,
             "attendance": [
                 { "training": g1t1, "date": "2016-12-05" },
                 { "training": mixt1, "date": "2016-12-12" },
@@ -150,7 +172,9 @@ def seed_test_data():
             "group": g2,
             "first_name": "John",
             "last_name": "Wayne",
-            "sport_card": True,
+            "login": "jwayne",
+            "password": "haslo",
+            "has_sport_card": True,
             "attendance": [
                 { "training": g2t3,  "date": "2016-12-01", "card": True },
                 { "training": g2t1,  "date": "2016-12-05", "card": True },
@@ -175,7 +199,9 @@ def seed_test_data():
             "group": g2,
             "first_name": "Bruce",
             "last_name": "Lee",
-            "sport_card": True,
+            "login": "bruce",
+            "password": "haslo",
+            "has_sport_card": True,
             "discount": 20,
             "attendance": [
                 { "training": g1t2,     "date": "2016-12-01", "card": True },
@@ -217,28 +243,40 @@ def seed_test_data():
                 { "year": 2017, "month": 1,  "amount": 0 }
             ],
         },
+        {
+            "group": g2,
+            "first_name": "Łukasz",
+            "last_name": "Hejnak",
+            "login": "lehack",
+            "password": "haslo",
+            "role": Attendees.SENSEI,
+        },
     ]
 
     for at in fakeData:
         at_params = {
-            "group": at["group"],
+            "group":      at["group"],
             "first_name": at["first_name"],
-            "last_name": at["last_name"],
-            "has_sport_card": at["sport_card"]
+            "last_name":  at["last_name"],
+            "login":      at["login"],
+            "password":   at["password"],
         }
-        if "discount" in at:
-            at_params["discount"] = at["discount"]
+        for optional in ("has_sport_card", "discount", "role", "active"):
+            if optional in at:
+                at_params[optional] = at[optional]
+
         a = Attendees(**at_params)
         a.save()
 
-        for tr in at["attendance"]:
-            att_params = {
-                "attendee": a, "training": tr["training"], "date": tr["date"]
-            }
-            if "card" in tr:
-                att_params["used_sport_card"] = tr["card"]
+        if "attendance" in at:
+            for tr in at["attendance"]:
+                att_params = {
+                    "attendee": a, "training": tr["training"], "date": tr["date"]
+                }
+                if "card" in tr:
+                    att_params["used_sport_card"] = tr["card"]
 
-            Attendance(**att_params).save()
+                Attendance(**att_params).save()
 
         if "payments" in at:
             for pay in at["payments"]:

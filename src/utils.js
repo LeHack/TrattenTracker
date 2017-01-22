@@ -6,7 +6,7 @@ function fetchFromBackend(url, resultHandler, errHandler) {
             console.log('Fetching data from:', url, 'failed with', ex);
         };
     }
-    window.fetch(url).then(function(response) {
+    window.fetch(url, {credentials: 'same-origin'}).then(function(response) {
         if (response.status !== 200) {
             // trigger error handler
             throw response;
@@ -19,7 +19,7 @@ function fetchFromBackend(url, resultHandler, errHandler) {
 
 module.exports = {
     fetchSessionStatus: function(resultHandler, errHandler) {
-        fetchFromBackend('/rest/session', resultHandler, errHandler);
+        fetchFromBackend('/rest/session/get', resultHandler, errHandler);
     },
     fetchAllAttendees: function(resultHandler, errHandler) {
         fetchFromBackend('/rest/attendees/', resultHandler, errHandler);
@@ -66,6 +66,7 @@ module.exports = {
         form.append('training_id', params['training'].training_id);
         form.append('training_time', params['training'].name);
         window.fetch('/rest/attendance', {
+            credentials: 'same-origin',
             method: 'POST',
             body: form,
         }).then(function(result){
@@ -83,6 +84,7 @@ module.exports = {
         var form = new FormData();
         form.append('payment', JSON.stringify(params));
         window.fetch('/rest/payments', {
+            credentials: 'same-origin',
             method: 'POST',
             body: form,
         }).then(function(result){
@@ -95,5 +97,27 @@ module.exports = {
         }).catch(function(ex) {
             console.log('Sending data failed with', ex);
         });
+    },
+    login: function(login, pass, successHandler, errorHandler) {
+        var form = new FormData();
+        form.append('login', login);
+        form.append('password', pass);
+        window.fetch('/rest/session/login', {
+            credentials: 'same-origin',
+            method: 'POST',
+            body: form,
+        }).then(function(result){
+            if (result.status !== 200) {
+                errorHandler(result);
+            }
+            else if (successHandler) {
+                return result.json();
+            }
+        }).then(successHandler).catch(function(ex) {
+            console.log('Sending data failed with', ex);
+        });
+    },
+    logout: function(resultHandler, errHandler) {
+        fetchFromBackend('/rest/session/logout', resultHandler, errHandler);
     }
 };

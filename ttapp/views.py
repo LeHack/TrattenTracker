@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone, dateparse
 from ttapp.models import Groups, Attendance, Attendees, Payment, MonthlyBalance, TrainingSchedule
+from ttapp.auth import Auth
 from ttapp.utils import get_trainings_in_month, calculate_attendance_summary, PaymentUtil
 
 
@@ -31,7 +32,7 @@ def list_groups(request):
 def list_attendees(request, group_id=None):
     query = Attendees.objects
     if group_id is not None:
-        query = query.filter(group=get_object_or_404(Groups, pk=group_id))
+        query = query.filter(group=get_object_or_404(Groups, pk=group_id), role=Attendees.ATTENDEE, active=True)
 
     data = []
     for a in query.all():
@@ -123,7 +124,7 @@ def list_payments(request, attendee_id):
     # get last 6 payments for this attendee
     data = Payment.objects.filter(
         attendee=get_object_or_404(Attendees, pk=attendee_id)
-    ).order_by('-date').all()[:6]
+    ).order_by('-date').all()[:10]
     payments = []
     for p in data:
         payments.append({
@@ -158,16 +159,38 @@ def get_monthly_fee(request, attendee_id):
     return JsonResponse({ "amount": pu.get_monthly_payment(now.year, now.month, attendee) })
 
 
-# TODO: Implement session handling and make this dynamic
 def get_session_status(request):
-    session = {
-#         "attendee_id": 6,
-#         "sport_card": True,
-        "status": "LoggedIn",
-        "user": "LeHack",
-        "role": "admin"
-    }
-    return JsonResponse(session)
+    status = { "logged in": False }
+
+    try:
+        status = Auth(request=request).as_response()
+    except (Auth.BadCookie, Auth.BadCredentials):
+        pass
+
+    return JsonResponse(status)
+
+# TODO: fix
+@csrf_exempt
+def login(request):
+    resp = JsonResponse({"logged in": False})
+    if request.method == "POST" and "login" in request.POST and "password" in request.POST:
+        try:
+            a = Auth(login=request.POST["login"], password=request.POST["password"])
+            resp = JsonResponse({"logged in": True})
+            a.set_cookie(resp)
+        except Auth.BadCredentials:
+            pass
+
+    return resp
+
+def logout(request):
+    resp = JsonResponse({"logged out": True})
+    try:
+        Auth(request=request).logout()
+    except (Auth.BadCookie, Auth.BadCredentials):
+        pass
+
+    return resp
 
 # TODO: fix this properly by implementing CSRF token handling in the front
 @csrf_exempt

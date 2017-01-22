@@ -199,6 +199,7 @@ class AttendanceSummary extends Component {
     showDetails(attendee, e) {
         // make sure this click doesn't reach the panel container
         e.stopPropagation();
+        e.target.blur();
         this.setState({ detailView: attendee });
     }
 

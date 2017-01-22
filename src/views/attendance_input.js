@@ -147,6 +147,7 @@ class AttendanceInput extends Component {
     updateAttendance(attendeeId, e) {
         // make sure this click doesn't reach the panel container
         e.stopPropagation();
+        e.target.blur();
         // first make a copy of the state vars
         let attendance = {...this.state.attendance};
         let sportCard  = {...this.state.sportCards};

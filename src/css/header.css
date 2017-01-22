@@ -35,9 +35,6 @@ div.jumbotron {
     .content-to-hide {
         display: none;
     }
-    .loginStatus {
-        display: none;
-    }
     .jumbotron h1, .jumbotron p {
         padding-left: 5%;
     }
