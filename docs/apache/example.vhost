@@ -6,8 +6,8 @@ WSGIPythonPath /home/trattentracker/git:/home/trattentracker/git/lib/python3.4/s
   DocumentRoot /home/trattentracker/git/assets/
   LogLevel info
 
-  WSGIScriptAlias /rest /home/trattentracker/git/trattrack/wsgi.py
-  WSGIScriptAlias /admin /home/trattentracker/git/trattrack/wsgi.py
+  WSGIScriptAlias /rest /home/trattentracker/git/trattrack/wsgi_prod.py
+  WSGIScriptAlias /admin /home/trattentracker/git/trattrack/wsgi_prod.py
 
   Alias /robots.txt /home/trattentracker/git/assets/robots.txt
   Alias /static/admin /home/trattentracker/git/assets/admin/
