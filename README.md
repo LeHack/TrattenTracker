@@ -3,6 +3,10 @@ Training attendance tracker with the option to calculate attendance-based monthl
 
 Autorzy: Łukasz Hejnak, Piotr Skurski, Łukasz Malinowski
 
+## Screenshoty:
+![Widok prowadzącego](https://raw.githubusercontent.com/LeHack/TrattenTracker/master/docs/screenshots/admin_view.png)
+![Widok użytkownika](https://raw.githubusercontent.com/LeHack/TrattenTracker/master/docs/screenshots/user_view.png)
+
 ## Instalacja (za pierwszym razem, później kroki 3, 5, 8, 10, 11):
 0. Upewnij się, że masz python3 (3.4.3) oraz pip 7.1.0 zainstalowany (i skonfigurowany by używał python3)
 1. sudo pip install virtualenv
