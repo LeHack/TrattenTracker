@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { DropdownButton, MenuItem, ListGroupItem } from 'react-bootstrap';
+import { Button, DropdownButton, Glyphicon, MenuItem, ListGroupItem } from 'react-bootstrap';
 import update from 'immutability-helper';
 
 import AppHeader  from '../components/header';
@@ -15,6 +15,7 @@ class TrainingSelect extends Component {
         this.state = {
             trainings: null,
             selectedTraining: { id: null, name: "..." },
+            selectionMode: 'list',
         };
     }
 
@@ -43,7 +44,7 @@ class TrainingSelect extends Component {
         }
     }
 
-    componentDidMount() {
+    fetchLatestTrainings() {
         utils.fetchTrainings((data) => function(self, data){
             let selected = self.getTrainingById(data.trainings, data.selected);
             self.setState({
@@ -55,18 +56,68 @@ class TrainingSelect extends Component {
         }(this, data), this.props.fatalError);
     }
 
+    fetchTrainingsByMonth(year, month) {
+        utils.fetchTrainingsByMonth(year, month, (data) => function(self, data){
+            // select first one
+            let selected = data.trainings[0];
+            self.setState({
+                trainings: data.trainings,
+                selectedTraining: selected,
+            });
+            // we must call this once on init
+            self.props.changeHandler(selected);
+        }(this, data), this.props.fatalError);
+    }
+
+    componentDidMount() {
+        this.fetchLatestTrainings();
+    }
+
+    toggleSelectionMode() {
+        let newMode = (this.state.selectionMode === "list" ? "calendar" : "list");
+        this.setState({ selectionMode: newMode });
+        if (newMode === "list") {
+            this.fetchLatestTrainings();
+        }
+        else {
+            this.fetchTrainingsByMonth(this.state.selectedTraining.year, this.state.selectedTraining.month);
+        }
+    }
+
+    changeRange(dir) {
+        if (!this.state.selectedTraining.id) {
+            return;
+        }
+        let diff = (dir ? 20 : -20);
+        var d = new Date(this.state.selectedTraining.year, this.state.selectedTraining.month - 1, 15);
+        d.setDate( d.getDate() + diff );
+        this.fetchTrainingsByMonth(d.getFullYear(), d.getMonth() + 1);
+    }
+
     render() {
+        let calMode = (this.state.selectionMode === "calendar");
+        let calLeft = '', calRight = '';
+        let icon = 'calendar';
+        if (calMode) {
+            icon = 'list';
+            calLeft  = (<Button bsSize="sm" onClick={() => this.changeRange(false)}><Glyphicon glyph='step-backward' /></Button>);
+            calRight = (<Button bsSize="sm" onClick={() => this.changeRange(true)}><Glyphicon glyph='step-forward' /></Button>);
+        }
         let contents = "";
         if (this.state.trainings != null) {
             contents = this.state.trainings.map((t) =>
                 <MenuItem key={"training" + t.id} eventKey={t.id} active={t.id === this.state.selectedTraining.id ? true : false}>{t.name}</MenuItem>
             );
         }
+
         return (
             <div className="trainingSelect">
+                {calLeft}
                 <DropdownButton bsStyle="default" bsSize="sm" pullRight={true} title={this.state.selectedTraining.name} id="selectTraining" onSelect={(trainingId) => this.handleTrainingChange(trainingId)}>
                     {contents}
                 </DropdownButton>
+                {calRight}
+                <Button bsSize="sm" onClick={() => this.toggleSelectionMode()}><Glyphicon glyph={icon} /></Button>
             </div>
         );
     }

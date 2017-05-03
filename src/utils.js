@@ -41,7 +41,7 @@ module.exports = {
         fetchFromBackend('/rest/list/groups', resultHandler, errHandler);
     },
     fetchTrainings: function(resultHandler, errHandler) {
-        fetchFromBackend('/rest/list/trainings/latest$', resultHandler, errHandler);
+        fetchFromBackend('/rest/list/trainings/latest', resultHandler, errHandler);
     },
     fetchTrainingsByMonth: function(year, month, resultHandler, errHandler) {
         fetchFromBackend('/rest/list/trainings/year:' + year + '/month:' + month, resultHandler, errHandler);

@@ -67,11 +67,13 @@ def list_trainings(request, year=None, month=None):
                 t_time = t["date"].strftime("%H:%M")
                 training = {
                     # we need a custom id for these entries, this is used only in UI
-                    "id": "training" + str(tmpId),
                     "training_id": t["training"].pk,
-                    "date": t_date,
-                    "time": t_time,
-                    "name": "%s %s" % (t_date, t_time),
+                    "id":    "training" + str(tmpId),
+                    "date":  t_date,
+                    "time":  t_time,
+                    "name":  "%s %s" % (t_date, t_time),
+                    "year":  t["date"].strftime("%Y"),
+                    "month": t["date"].strftime("%m"),
                 }
                 trainings.append(training)
                 tmpId += 1
