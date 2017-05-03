@@ -43,10 +43,18 @@ class CancelledTrainingsAdmin(admin.ModelAdmin):
     list_filter = ['date']
     ordering = ('-date',)
 
+
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('attendee', 'date', 'type', 'amount', 'tax_reported')
+    list_filter = ['type', 'tax_reported']
+    search_fields = ['attendee']
+    ordering = ('-date', 'type')
+
+
 admin.site.register(Groups, GroupsAdmin)
 admin.site.register(Attendees, AttendeesAdmin)
 admin.site.register(CancelledTrainings, CancelledTrainingsAdmin)
+admin.site.register(Payment, PaymentAdmin)
 
 admin.site.register(MonthlyBalance)
-admin.site.register(Payment)
 admin.site.register(Attendance)

@@ -69,6 +69,7 @@ class Attendees(models.Model):
     password       = models.CharField('hasło', max_length=100)
     role           = models.CharField('rola', max_length=10, choices=ROLES, default=ATTENDEE)
     active         = models.BooleanField('czy ćwiczy', default=True)
+    email          = models.CharField('e-mail', max_length=100, null=True, default=None)
 
     class Meta:
         unique_together = (("group", "first_name", "last_name"),)
