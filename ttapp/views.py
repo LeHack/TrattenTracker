@@ -50,8 +50,10 @@ def list_trainings(request, year=None, month=None):
     trainings = []
     today = datetime.today()
     months = []
-    if year is not None and month is not None:
-        months.append( date(year, month, 1) )
+    how_many = 6
+    if year and month:
+        how_many = None # all
+        months.append( date(int(year), int(month), 1) )
     else:
         # by default show current and last month
         months.append( today - relativedelta(months=1) );
@@ -74,8 +76,10 @@ def list_trainings(request, year=None, month=None):
                 trainings.append(training)
                 tmpId += 1
     trainings = sorted(trainings, key=lambda s: s["date"])
+    if how_many:
+        trainings = trainings[-1 * how_many:]
     # by default select the last one
-    return JsonResponse({"trainings": trainings[-6:], "selected": trainings[-1]["id"]})
+    return JsonResponse({"trainings": trainings, "selected": trainings[-1]["id"]})
 
 
 def list_attendance(request, date=None, time=None, month=None, attendee_id=None):

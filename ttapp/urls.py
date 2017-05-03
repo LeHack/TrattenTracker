@@ -6,7 +6,10 @@ urlpatterns = [
         url(r'^groups$', views.list_groups),
         url(r'^attendees$', views.list_attendees),
         url(r'^attendees/group:(?P<group_id>[0-9]+)$', views.list_attendees),
-        url(r'^trainings$', views.list_trainings),
+        url(r'^trainings/', include([
+            url(r'^latest$', views.list_trainings),
+            url(r'^year:(?P<year>[0-9]+)/month:(?P<month>[0-9-]+)$', views.list_trainings),
+        ])),
         url(r'^attendance/', include([
             url(r'^attendee:(?P<attendee_id>[0-9]+)/month:(?P<month>[0-9-]+)$', views.list_attendance),
             url(r'^date:(?P<date>[0-9\-]+)/time:(?P<time>[0-9:]+)$', views.list_attendance),
