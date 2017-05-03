@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q
-from ttapp.models import Attendance, CancelledTrainings, TrainingSchedule, Groups, MonthlyBalance
+from ttapp.models import Attendance, CancelledTrainings, TrainingSchedule, Groups, MonthlyBalance, Payment
 
 
 def get_trainings_in_month(year, month, group=None):
@@ -139,8 +139,8 @@ def calculate_attendance_summary(attendees, year=None, month=None, split_by_mont
                 for atType in output[aKey][month]:
                     row[atType] = output[aKey][month][atType]
                 tmp.append(row)
-
-            output[aKey] = tmp
+ 
+            output[aKey] = sorted(tmp, key=lambda r: r["raw_month"])
         else:
             for atType in output[aKey]:
                 total = output[aKey][atType].pop("total", 0)
@@ -169,6 +169,7 @@ If has_sport_card == false than monthly payment
 class PaymentUtil:
 
     money_from_sport_card = 10   # 10zl
+    opt_warning_issued = False
 
     '''
     Utility method for getting attendee month payment
@@ -194,28 +195,65 @@ class PaymentUtil:
     Utility method for getting total current balance
     '''
     def get_total_current_balance(self, attendee):
+        attendances = None
+        payments = None
         attendances_map = {}
         total_balance = 0
+        t = date.today()
 
         monthly_balance_set = MonthlyBalance.objects.filter(attendee=attendee).order_by('-year', '-month')
         if monthly_balance_set.exists():
             total_balance = monthly_balance_set[0].amount
             next_month = date(monthly_balance_set[0].year, monthly_balance_set[0].month, 1) + relativedelta(months=1)
             attendances = Attendance.objects.filter(attendee=attendee, date__gte=next_month).order_by('-date')
+            payments = Payment.objects.filter(attendee=attendee, date__gte=next_month)
         else:
+            # take all payments and all attendances
             attendances = Attendance.objects.filter(attendee=attendee).order_by('-date')
+            payments = Payment.objects.filter(attendee=attendee)
+            # take first month of attendance
+            first_att = attendances[len(attendances) - 1].date
+            next_month = date(first_att.year, first_att.month, 1)
 
         for record in attendances:
             if record.date.year in attendances_map:
                 if record.date.month in attendances_map[record.date.year]:
                     attendances_map[record.date.year][record.date.month] += 1
                 else:
-                    attendances_map[record.date.year] = {record.date.month: 1}
+                    attendances_map[record.date.year][record.date.month] = 1
             else:
                 attendances_map[record.date.year] = {record.date.month: 1}
 
-        for year, nested_map in attendances_map.items():
-            for month, counter in nested_map.items():
-                total_balance += attendee.get_monthly_fee() - (counter * self.money_from_sport_card)
+        # prepare a list of months to take into account
+        months = []
+        iter_month = next_month
+        while (t.year * 12 + t.month >= iter_month.year * 12 + iter_month.month):
+            months.append(iter_month)
+            iter_month += relativedelta(months = 1)
+            if not self.opt_warning_issued and len(months) > 6:
+                self.opt_warning_issued = True
+                print("Warning, payment balance calculation is done for more than 6 months for " + str(attendee))
+
+        for m in months:
+            is_current_month = (t.year == m.year and t.month == m.month)
+            # subtract the monthly fee for the current month for those without a sport card
+            if is_current_month and not attendee.has_sport_card:
+                total_balance -= attendee.get_monthly_fee()
+
+            # skip months without at least one attendance
+            if m.year not in attendances_map or m.month not in attendances_map[m.year]:
+                continue
+
+            # subtract the monthly fee
+            if not is_current_month:
+                total_balance -= attendee.get_monthly_fee()
+
+                # now if the attendee is using a sports card, add the correct amount for every attendance
+                if attendee.has_sport_card:
+                    total_balance += (attendances_map[m.year][m.month] * self.money_from_sport_card)
+
+        # finally append any payments already registered
+        for p in payments:
+            total_balance += p.amount
 
         return total_balance

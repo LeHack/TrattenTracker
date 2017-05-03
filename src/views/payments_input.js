@@ -138,11 +138,11 @@ class PaymentsInput extends Component {
         for (let g of attendees) {
             this.balanceLoading[g.groupId] = true;
 	        utils.fetchGroupOutstanding(g.groupId, (data) => function(self, data, gid){
-                for (let aid of Object.keys(data.amount)) {
-                    data.amount[aid] = {$set: data.amount[aid]};
+                for (let aid of Object.keys(data.attendee)) {
+                    data.attendee[aid] = {$set: data.attendee[aid]};
                 }
                 let stateUpdate = {
-                    balance: update(self.state.balance, data.amount)
+                    balance: update(self.state.balance, data.attendee)
                 }
                 // drop key and check if anything is left
                 delete self.balanceLoading[gid];
@@ -172,10 +172,13 @@ class PaymentsInput extends Component {
         let style = null;
         let balance = 0;
         if (attendeeId in this.state.balance) {
-            balance = this.state.balance[attendeeId];
+            balance = this.state.balance[attendeeId].outstanding;
         }
         if (balance > 0) {
             style = "success";
+        }
+        else if (balance < -1 * this.state.balance[attendeeId].monthly) {
+            style = "danger";
         }
         else if (balance < 0) {
             style = "warning";

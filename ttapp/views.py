@@ -123,7 +123,9 @@ def attendance_summary(request, attendee_id=None, group_id=None, split_by_month=
     elif attendee_id is not None:
         attendees.append(get_object_or_404(Attendees, pk=attendee_id))
 
-    return JsonResponse({"stats": calculate_attendance_summary(attendees, split_by_month=split_by_month, month_range=2)}) # later remove to switch back to 6
+    return JsonResponse({
+        "stats": calculate_attendance_summary(attendees, split_by_month=split_by_month, month_range=3),
+    }) # later remove to switch back to 6
 
 
 def list_payments(request, attendee_id):
@@ -143,19 +145,22 @@ def list_payments(request, attendee_id):
 
 
 def get_current_outstanding(request, attendee_id=None, group_id=None):
-    ''' Calculates the attendance statistics for the given attendee or group '''
+    ''' Calculates the payment statistics for the given attendee or group '''
     attendees = []
-    if group_id is not None:
-        attendees = Attendees.objects.filter(group=get_object_or_404(Groups, pk=group_id)).all()
-    elif attendee_id is not None:
+    if group_id:
+        attendees = Attendees.objects.filter(group=get_object_or_404(Groups, pk=group_id), role=Attendees.ATTENDEE, active=True).all()
+    elif attendee_id:
         attendees.append(get_object_or_404(Attendees, pk=attendee_id))
 
     amount = {}
     pu = PaymentUtil()
     for a in attendees:
-        amount[a.pk] = pu.get_total_current_balance(a);
+        amount[a.pk] = {
+            "outstanding": pu.get_total_current_balance(a),
+            "monthly": a.get_monthly_fee(),
+        };
 
-    return JsonResponse({ "amount": amount })
+    return JsonResponse({ "attendee": amount })
 
 
 def get_monthly_fee(request, attendee_id):
