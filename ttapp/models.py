@@ -89,8 +89,12 @@ class Attendees(models.Model):
         hash_base = new_pass + settings.SECRET_KEY
         return hashlib.sha1( hash_base.encode('utf-8') ).hexdigest()
 
+    def __init__(self, *args, **kwargs):
+        super(Attendees, self).__init__(*args, **kwargs)
+        self.__original_password = self.password
+
     def save(self, *args, **kwargs):
-        if self._state.adding or self.password != self._loaded_values['password']:
+        if self._state.adding or self.password != self.__original_password:
             self.password = self.hash_password(self.password)
         super(Attendees, self).save(*args, **kwargs)
 
