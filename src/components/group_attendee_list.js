@@ -17,12 +17,22 @@ let GroupHandler = ComposedComponent => class extends Component {
     }
 
     fetchGroupData() {
-        utils.fetchGroups((data) => function(self, data){
-            for (let group of data.groups) {
-                self.groupLoading.push({ id: group.group_id, done: false });
-                self.processGroup(group);
+        let attendeeData = JSON.parse(localStorage.getItem('attendeeData'));
+        if (!attendeeData || attendeeData.timestamp + 60000 < new Date().getTime()) {
+            utils.fetchGroups((data) => function(self, data){
+                for (let group of data.groups) {
+                    self.groupLoading.push({ id: group.group_id, done: false });
+                    self.processGroup(group);
+                }
+            }(this, data), this.props.fatalError);
+        }
+        else {
+            this.setState(attendeeData);
+            // if we have any postprocessing to do, run it now
+            if (this.props.runWithAttendees) {
+                this.props.runWithAttendees(attendeeData.attendees);
             }
-        }(this, data), this.props.fatalError);
+        }
     }
 
     processGroup(group) {
@@ -63,10 +73,13 @@ let GroupHandler = ComposedComponent => class extends Component {
         }
 
         // if every group has been processed, join and update state
-        this.setState({
+        let attendeeData = {
             attendees: attendees,
             attendeeGroup: groupState,
-        });
+        };
+        this.setState(attendeeData);
+        attendeeData.timestamp = new Date().getTime();
+        localStorage.setItem('attendeeData', JSON.stringify(attendeeData));
 
         // if we have any postprocessing to do, run it now
         if (this.props.runWithAttendees) {

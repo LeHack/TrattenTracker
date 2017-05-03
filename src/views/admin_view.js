@@ -1,7 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router'
 import { Nav } from 'react-bootstrap';
+
 import cfg from '../route_config';
+import AppHeader from '../components/header';
+import Session from '../components/session';
 
 
 function NavItem(props) {
@@ -13,7 +16,7 @@ function NavItem(props) {
     );
 }
 
-export default function AppNavigation(props) {
+function AdminView(props) {
     let navItems = [
         {
             "label": "Obecności",
@@ -37,11 +40,21 @@ export default function AppNavigation(props) {
         },
     ];
 
+    let navIntro = (
+        <p className="content-to-hide">
+            Panel prowadzącego
+        </p>
+    );
     return (
-        <Nav bsClass="middle" bsStyle="pills" stacked>
-            {navItems.map((item) =>
-                <NavItem key={item.label} link={item.link} label={item.label} description={item.description} />
-            )}
-        </Nav>
+        <div>
+            <AppHeader viewJSX={navIntro} session={props.session} routes={props.routes} params={props.params} />
+            <Nav bsClass="middle" bsStyle="pills" stacked>
+                {navItems.map((item) =>
+                    <NavItem key={item.label} link={item.link} label={item.label} description={item.description} />
+                )}
+            </Nav>
+        </div>
     );
 }
+
+export default Session(AdminView);

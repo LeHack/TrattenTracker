@@ -1,9 +1,11 @@
 module.exports = {
     routes: {
         main: '/',
-        attendance: '/obecnosci',
-        attendance_summary: '/podsumowanie/obecnosci',
-        payment: '/platnosci',
-        payment_summary: '/podsumowanie/platnosci'
+        admin: '/admin',
+        attendance: '/admin/obecnosci',
+        attendance_summary: '/admin/podsumowanie/obecnosci',
+        payment: '/admin/platnosci',
+        payment_summary: '/admin/podsumowanie/platnosci',
+        user_summary: '/zestawienie',
     }
 };

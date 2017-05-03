@@ -6,7 +6,7 @@ import '../css/header.css';
 function Login(props) {
     let userName = '';
     let loginLink = (<a href={props.login}>Login</a>);
-    if (props.user != null) {
+    if (props.user != null && props.user['logged in']) {
         userName = (<span className="content-to-hide">Logged in as {props.user.name}</span>);
         loginLink = (<a href="#" onClick={props.user.logoutHandler}>Logout</a>);
     }

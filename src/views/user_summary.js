@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { Panel, PanelGroup, ProgressBar, Table } from 'react-bootstrap';
 
 import { AttendanceDetails } from '../components/attendance_details';
+import AppHeader from '../components/header';
+import Session from '../components/session';
 import utils from '../utils';
 import '../css/main_user.css';
 
@@ -10,6 +12,7 @@ class Summary extends Component {
         super(props);
         this.state = {
             payment: "...",
+            monthly_fee: "...",
             basic: { count: "...", freq: "..." },
             extra: { count: "...", freq: "..." },
         };
@@ -25,7 +28,8 @@ class Summary extends Component {
         }(this, aid, data), this.props.fatalError);
         utils.fetchOutstanding(aid, (data) => function(self, aid, data){
             self.setState({
-                payment: data.amount[aid]
+                payment: data.attendee[aid].outstanding,
+                monthly_fee: data.attendee[aid].monthly,
             });
         }(this, aid, data), this.props.fatalError);
     }
@@ -35,7 +39,11 @@ class Summary extends Component {
             <Table responsive striped>
                 <tbody>
                     <tr>
-                        <td>Bilans płatności:</td>
+                        <td>Opłata miesięczna:</td>
+                        <td colSpan="2">{this.state.monthly_fee} zł {this.props.user.sport_card && <span>(karta sportowa)</span> }</td>
+                    </tr>
+                    <tr>
+                        <td>Bieżący bilans:</td>
                         <td colSpan="2">{this.state.payment} zł</td>
                     </tr>
                     <tr>
@@ -172,7 +180,7 @@ class UserPayments extends Component {
 }
 
 
-export default class UserSummary extends Component {
+class UserSummary extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -185,7 +193,7 @@ export default class UserSummary extends Component {
     }
 
     componentDidMount() {
-        this.setState({user: this.props.user});
+        this.setState({user: this.props.session});
     }
 
     changePanel(i) {
@@ -195,18 +203,24 @@ export default class UserSummary extends Component {
     }
 
     render() {
+        let navIntro = (
+            <p>
+                {this.props.session.name}
+            </p>
+        );
         return (
             <div>
+                <AppHeader viewJSX={navIntro} session={this.props.session} routes={this.props.routes} params={this.props.params} />
                 {this.state.user ?
                     <PanelGroup accordion defaultActiveKey="1" activeKey={""+this.state.selected}>
                         <Panel header="Zestawienie" eventKey="1" onClick={() => this.changePanel(1)}>
-                            <Summary fatalError={this.props.fatalError} user={this.props.user}/>
+                            <Summary fatalError={this.props.fatalError} user={this.state.user}/>
                         </Panel>
                         <Panel header="Obecności" eventKey="2" onClick={() => this.changePanel(2)}>
-                            <UserAttendance fatalError={this.props.fatalError} user={this.props.user} />
+                            <UserAttendance fatalError={this.props.fatalError} user={this.state.user} />
                         </Panel>
                         <Panel header="Płatności" eventKey="3" onClick={() => this.changePanel(3)}>
-                            <UserPayments fatalError={this.props.fatalError} user={this.props.user} />
+                            <UserPayments fatalError={this.props.fatalError} user={this.state.user} />
                         </Panel>
                     </PanelGroup>
                     : <ProgressBar active label="Ładowanie panelu użytkownika..." now={100} />
@@ -215,3 +229,5 @@ export default class UserSummary extends Component {
         );
     }
 }
+
+export default Session(UserSummary);

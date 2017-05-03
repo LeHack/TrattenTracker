@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { browserHistory } from 'react-router';
 import { Button, ControlLabel, FormControl, FormGroup, Modal, ProgressBar } from 'react-bootstrap';
 
 import AppHeader from './header';
@@ -27,15 +28,28 @@ var Session = ComposedComponent => class extends Component {
     }
 
     fetchSession() {
-        utils.fetchSessionStatus((session) => function(self, session){
-            session.logoutHandler = self.logoutHandler;
-            self.setState({ session: session });
-        }(this, session), this.fatalErrorHandler);
+        let storedSession = JSON.parse(localStorage.getItem('session'));
+        if (!storedSession || storedSession.timestamp + 300000 < new Date().getTime()) {
+            utils.fetchSessionStatus((session) => function(self, session){
+                session.logoutHandler = self.logoutHandler;
+                self.setState({ session: session });
+                if (session['logged in']) {
+                    session.timestamp = new Date().getTime();
+                    localStorage.setItem('session', JSON.stringify(session));
+                }
+            }(this, session), this.fatalErrorHandler);
+        }
+        else {
+            // refresh handler
+            storedSession.logoutHandler = this.logoutHandler;
+            this.setState({ session: storedSession });
+        }
     }
 
     logoutHandler() {
         utils.logout(() => function(self){
-            self.fetchSession();
+            localStorage.removeItem('session');
+            browserHistory.push('/');
         }(this), this.fatalErrorHandler);
     }
 
