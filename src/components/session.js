@@ -48,7 +48,8 @@ var Session = ComposedComponent => class extends Component {
 
     logoutHandler() {
         utils.logout(() => function(self){
-            localStorage.removeItem('session');
+            // clear localStorage when logging out
+            localStorage.clear();
             browserHistory.push('/');
         }(this), this.fatalErrorHandler);
     }
