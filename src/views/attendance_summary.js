@@ -3,6 +3,7 @@ import { Button, Modal, ProgressBar, Table } from 'react-bootstrap';
 import update from 'immutability-helper';
 
 import AppHeader from '../components/header';
+import AuthorizedComponent from '../components/authorized_component';
 import { AttendanceDetails } from '../components/attendance_details';
 import GroupAttendeeList from '../components/group_attendee_list';
 import Session from '../components/session';
@@ -209,4 +210,4 @@ class AttendanceSummary extends Component {
     }
 }
 
-export default Session(AttendanceSummary);
+export default Session(AuthorizedComponent(AttendanceSummary));

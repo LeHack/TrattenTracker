@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from .models import Attendees, Session
-
+from django.core.exceptions import PermissionDenied
 
 class Auth:
     session  = None
@@ -58,3 +58,18 @@ class Auth:
 
     class BadCookie(Exception):
         pass
+
+
+def request_authenticated(function):
+    def wrap(request, *args, **kwargs):
+        try:
+            a = Auth(request=request)
+        except (Auth.BadCookie, Auth.BadCredentials):
+            raise PermissionDenied
+
+        kwargs['auth'] = a
+        return function(request, *args, **kwargs)
+
+    wrap.__doc__ = function.__doc__
+    wrap.__name__ = function.__name__
+    return wrap

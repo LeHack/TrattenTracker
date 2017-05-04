@@ -14,8 +14,8 @@ module.exports = (
     <Router history={browserHistory}>
         <Route name="Start" path="/">
             <IndexRoute component={Main} />
-            <Route name="Zestawienie" path={cfg.routes.user_summary} component={UserSummary}/>
-            <Route name="Prowadzący" path={cfg.routes.admin}>
+            <Route authorize="ATTENDEE" name="Zestawienie" path={cfg.routes.user_summary} component={UserSummary}/>
+            <Route authorize="SENSEI" name="Prowadzący" path={cfg.routes.admin}>
                 <IndexRoute component={AdminView} />
                 <Route name="Obecności" path={cfg.routes.attendance} component={Attendance}/>
                 <Route name="Płatności" path={cfg.routes.payment} component={Payments}/>

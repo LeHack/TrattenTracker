@@ -120,7 +120,8 @@ class Session(models.Model):
         return "%s:%s" % (self.secret, self.pk)
 
     def __str__(self):
-        return "for %s until %s" % (self.user, self.timestamp.strftime("%H:%M"))
+        timeout = self.timestamp + timedelta(minutes = 10)
+        return "for %s until %s" % (self.user, timeout.strftime("%Y-%m-%d %H:%M"))
 
     @staticmethod
     def extract_id(value):

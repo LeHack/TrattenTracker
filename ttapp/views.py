@@ -2,16 +2,26 @@ import json
 from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone, dateparse
 from ttapp.models import Groups, Attendance, Attendees, Payment, MonthlyBalance, TrainingSchedule
-from ttapp.auth import Auth
+from ttapp.auth import Auth, request_authenticated
 from ttapp.utils import get_trainings_in_month, calculate_attendance_summary, PaymentUtil
 
 
-def list_groups(request):
+def _is_not_sensei(auth):
+    return (auth.session.user.role != Attendees.SENSEI)
+
+def _is_not_sensei_nor_attendee(auth, attendee_id):
+    return (auth.session.user.role != Attendees.SENSEI and str(auth.session.user.pk) != str(attendee_id))
+
+
+@request_authenticated
+def list_groups(request, auth=None):
+    if _is_not_sensei(auth):
+        return HttpResponseForbidden()
+
     groups = []
     for g in Groups.objects.all():
         groups.append({
@@ -29,7 +39,11 @@ def list_groups(request):
     return JsonResponse({"groups": groups, "selected": selected_group})
 
 
-def list_attendees(request, group_id=None):
+@request_authenticated
+def list_attendees(request, group_id=None, auth=None):
+    if _is_not_sensei(auth):
+        return HttpResponseForbidden()
+
     query = Attendees.objects
     if group_id is not None:
         query = query.filter(group=get_object_or_404(Groups, pk=group_id), role=Attendees.ATTENDEE, active=True)
@@ -45,8 +59,13 @@ def list_attendees(request, group_id=None):
     return JsonResponse({"attendees": data})
 
 
-def list_trainings(request, year=None, month=None):
+@request_authenticated
+def list_trainings(request, year=None, month=None, auth=None):
     ''' List  all trainings from all groups for the given month and automatically select the closest one (see issue#10) '''
+
+    if _is_not_sensei(auth):
+        return HttpResponseForbidden()
+
     trainings = []
     today = datetime.today()
     months = []
@@ -84,7 +103,11 @@ def list_trainings(request, year=None, month=None):
     return JsonResponse({"trainings": trainings, "selected": trainings[-1]["id"]})
 
 
-def list_attendance(request, date=None, time=None, month=None, attendee_id=None):
+@request_authenticated
+def list_attendance(request, date=None, time=None, month=None, attendee_id=None, auth=None):
+    if _is_not_sensei_nor_attendee(auth, attendee_id):
+        return HttpResponseForbidden()
+
     if (date is None or time is None) and month is None:
         raise Exception("You need to specify date and time or year and month")
 
@@ -115,8 +138,14 @@ def list_attendance(request, date=None, time=None, month=None, attendee_id=None)
     return JsonResponse({"attendance": attendance})
 
 
-def attendance_summary(request, attendee_id=None, group_id=None, split_by_month=False):
+@request_authenticated
+def attendance_summary(request, attendee_id=None, group_id=None, split_by_month=False, auth=None):
     ''' Calculates the attendance statistics for the given attendee or group '''
+
+    if _is_not_sensei_nor_attendee(auth, attendee_id):
+        print("Well yeah...")
+        return HttpResponseForbidden()
+
     attendees = []
     if group_id is not None:
         attendees = Attendees.objects.filter(group=get_object_or_404(Groups, pk=group_id)).all()
@@ -128,7 +157,11 @@ def attendance_summary(request, attendee_id=None, group_id=None, split_by_month=
     }) # later remove to switch back to 6
 
 
-def list_payments(request, attendee_id):
+@request_authenticated
+def list_payments(request, attendee_id, auth=None):
+    if _is_not_sensei_nor_attendee(auth, attendee_id):
+        return HttpResponseForbidden()
+
     # get last 6 payments for this attendee
     data = Payment.objects.filter(
         attendee=get_object_or_404(Attendees, pk=attendee_id)
@@ -144,8 +177,13 @@ def list_payments(request, attendee_id):
     return JsonResponse({"payments": payments})
 
 
-def get_current_outstanding(request, attendee_id=None, group_id=None):
+@request_authenticated
+def get_current_outstanding(request, attendee_id=None, group_id=None, auth=None):
     ''' Calculates the payment statistics for the given attendee or group '''
+
+    if _is_not_sensei_nor_attendee(auth, attendee_id):
+        return HttpResponseForbidden()
+
     attendees = []
     if group_id:
         attendees = Attendees.objects.filter(group=get_object_or_404(Groups, pk=group_id), role=Attendees.ATTENDEE, active=True).all()
@@ -163,7 +201,12 @@ def get_current_outstanding(request, attendee_id=None, group_id=None):
     return JsonResponse({ "attendee": amount })
 
 
-def get_monthly_fee(request, attendee_id):
+@request_authenticated
+def get_monthly_fee(request, attendee_id, auth=None):
+
+    if _is_not_sensei_nor_attendee(auth, attendee_id):
+        return HttpResponseForbidden()
+
     pu = PaymentUtil()
     attendee = get_object_or_404(Attendees, pk=attendee_id);
     now = datetime.now()
@@ -181,8 +224,7 @@ def get_session_status(request):
 
     return out
 
-# TODO: fix
-@csrf_exempt
+
 def login(request):
     resp = JsonResponse({"logged in": False})
     if request.method == "POST" and "login" in request.POST and "password" in request.POST:
@@ -204,9 +246,12 @@ def logout(request):
 
     return resp
 
-# TODO: fix this properly by implementing CSRF token handling in the front
-@csrf_exempt
-def update_attendance(request, *args, **kwargs):
+
+@request_authenticated
+def update_attendance(request, auth=None, *args, **kwargs):
+    if _is_not_sensei(auth):
+        return HttpResponseForbidden()
+
     if request.method == "POST":
         attendance    = json.loads(request.POST["attendance"]);
         training      = get_object_or_404(TrainingSchedule, pk=request.POST["training_id"])
@@ -237,8 +282,11 @@ def update_attendance(request, *args, **kwargs):
     return JsonResponse({"request": "OK"})
 
 
-@csrf_exempt
-def update_payment(request, *args, **kwargs):
+@request_authenticated
+def update_payment(request, auth=None, *args, **kwargs):
+    if _is_not_sensei(auth):
+        return HttpResponseForbidden()
+
     if request.method == "POST":
         payment = json.loads(request.POST["payment"]);
         params = {

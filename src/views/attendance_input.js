@@ -3,6 +3,7 @@ import { Button, DropdownButton, Glyphicon, MenuItem, ListGroupItem } from 'reac
 import update from 'immutability-helper';
 
 import AppHeader  from '../components/header';
+import AuthorizedComponent from '../components/authorized_component';
 import Session from '../components/session';
 import { SaveChanges } from '../components/save_button';
 import GroupAttendeeList from '../components/group_attendee_list';
@@ -273,7 +274,7 @@ class AttendanceInput extends Component {
         }
         // convert a list
         let attendance = [];
-        for (let aid in unsaved) {
+        for (let aid of unsaved) {
             if (unsaved.hasOwnProperty(aid)) {
                 attendance.push( unsaved[aid] );
             }
@@ -347,4 +348,4 @@ class AttendanceInput extends Component {
     }
 }
 
-export default Session(AttendanceInput);
+export default Session(AuthorizedComponent(AttendanceInput));

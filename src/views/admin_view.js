@@ -4,6 +4,7 @@ import { Nav } from 'react-bootstrap';
 
 import cfg from '../route_config';
 import AppHeader from '../components/header';
+import AuthorizedComponent from '../components/authorized_component';
 import Session from '../components/session';
 
 
@@ -57,4 +58,4 @@ function AdminView(props) {
     );
 }
 
-export default Session(AdminView);
+export default Session(AuthorizedComponent(AdminView));

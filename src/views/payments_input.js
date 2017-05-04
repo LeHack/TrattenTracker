@@ -3,6 +3,7 @@ import { Button, ControlLabel, FormControl, FormGroup, Modal, ListGroupItem, Pro
 import update from 'immutability-helper';
 
 import AppHeader  from '../components/header';
+import AuthorizedComponent from '../components/authorized_component';
 import Session from '../components/session';
 import GroupAttendeeList from '../components/group_attendee_list';
 import utils from '../utils';
@@ -211,4 +212,4 @@ class PaymentsInput extends Component {
     }
 }
 
-export default Session(PaymentsInput);
+export default Session(AuthorizedComponent(PaymentsInput));

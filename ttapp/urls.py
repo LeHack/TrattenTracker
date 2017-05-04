@@ -1,4 +1,5 @@
 from django.conf.urls import include, url
+from django.views.decorators.csrf import ensure_csrf_cookie
 from . import views
 
 urlpatterns = [
@@ -30,7 +31,7 @@ urlpatterns = [
         ])),
     ])),
     url(r'^get/', include([
-        url(r'^session$', views.get_session_status),
+        url(r'^session$', ensure_csrf_cookie(views.get_session_status)),
         url(r'^fee/attendee:(?P<attendee_id>[0-9]+)$', views.get_monthly_fee),
     ])),
     url(r'^update/', include([
