@@ -1,3 +1,6 @@
+import Cookies from 'universal-cookie';
+const cookies = new Cookies();
+
 function handleComms(url, data, resultHandler, errHandler) {
     window.fetch(url, {
         ...data,
@@ -23,6 +26,8 @@ function sendToBackend(url, data, resultHandler, errHandler) {
     if (!errHandler) {
         errHandler = function(ex) { console.log('Sending data to:', url, 'failed with', ex) };
     }
+    data.append('csrfmiddlewaretoken', cookies.get('csrftoken'));
+
     handleComms(url, {
         method: 'POST',
         body: data,
