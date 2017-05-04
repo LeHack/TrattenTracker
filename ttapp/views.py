@@ -143,7 +143,6 @@ def attendance_summary(request, attendee_id=None, group_id=None, split_by_month=
     ''' Calculates the attendance statistics for the given attendee or group '''
 
     if _is_not_sensei_nor_attendee(auth, attendee_id):
-        print("Well yeah...")
         return HttpResponseForbidden()
 
     attendees = []
