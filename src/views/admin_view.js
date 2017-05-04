@@ -34,11 +34,6 @@ function AdminView(props) {
             "description": "Statystyki frekwencji w wybranej grupie ćwiczących.",
             "link": cfg.routes.attendance_summary
         },
-        {
-            "label": "Zestawienie płatności",
-            "description": "Przegląd aktualnego stanu rozliczeń dla wybranej grupy ćwiczących.",
-            "link": cfg.routes.payment_summary
-        },
     ];
 
     let navIntro = (

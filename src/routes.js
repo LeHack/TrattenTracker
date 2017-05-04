@@ -20,9 +20,8 @@ module.exports = (
                 <Route name="Obecności" path={cfg.routes.attendance} component={Attendance}/>
                 <Route name="Płatności" path={cfg.routes.payment} component={Payments}/>
                 <Route name="Zestawienie Obecności" path={cfg.routes.attendance_summary} component={AttendanceSummary}/>
-                <Route name="Zestawienie Płatności" path={cfg.routes.payment_summary} component={NotFound}/>
             </Route>
-		</Route>
+        </Route>
         <Route name="404" path='*' component={NotFound}/>
     </Router>
 );
