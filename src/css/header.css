@@ -8,7 +8,7 @@ div.jumbotron {
     padding-bottom: 10px;
     margin: 0;
 }
-.jumbotron h1 { padding-left: 10%; }
+.jumbotron h1, h2 { padding-left: 10%; }
 .jumbotron p { padding-left: 10%; }
 
 .loginStatus {

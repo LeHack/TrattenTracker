@@ -22,7 +22,7 @@ function AppHeader(props) {
         <div>
             <Jumbotron bsClass="jumbotron backdrop">
                 <Login user={props.session} login="#" logout="#"/>
-                <h1>TrAtten Tracker</h1>
+                <h2>Szkoła Karate "Samuraj"</h2>
                 {props.viewJSX}
             </Jumbotron>
             {props.showBreadcrumbs &&
