@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import { Panel, PanelGroup, ProgressBar, Table } from 'react-bootstrap';
+import { Glyphicon, Panel, PanelGroup, ProgressBar, Table } from 'react-bootstrap';
 
 import { AttendanceDetails } from '../components/attendance_details';
 import AppHeader from '../components/header';
 import Session from '../components/session';
 import utils from '../utils';
-import '../css/main_user.css';
+import '../css/user_summary.css';
 
 class Summary extends Component {
     constructor(props) {
@@ -46,6 +46,20 @@ class Summary extends Component {
                         <td>Bieżący bilans:</td>
                         <td colSpan="2">{this.state.payment} zł</td>
                     </tr>
+                    { this.props.user.payments.extra &&
+                        <tr>
+                            <td>Opłaty dodatkowe:</td>
+                            <td>Staż</td>
+                            <td>Egzamin</td>
+                        </tr>
+                    }
+                    { this.props.user.payments.extra &&
+                        <tr>
+                            <td></td>
+                            <td>{this.props.user.payments.seminar ? <Glyphicon glyph='ok' /> : <Glyphicon glyph='remove' />}</td>
+                            <td>{this.props.user.payments.exam    ? <Glyphicon glyph='ok' /> : <Glyphicon glyph='remove' />}</td>
+                        </tr>
+                    }
                     <tr>
                         <td>Frekwencja:</td>
                         <td>Podstawowa</td>

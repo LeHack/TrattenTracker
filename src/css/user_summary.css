@@ -1,0 +1,13 @@
+.lists .list-group {
+	margin: 0;
+}
+.center {
+    text-align: center;
+}
+
+.glyphicon-remove {
+    color: red;
+}
+.glyphicon-ok {
+    color: green;
+}

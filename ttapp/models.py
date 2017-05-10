@@ -70,6 +70,9 @@ class Attendees(models.Model):
     role           = models.CharField('rola', max_length=10, choices=ROLES, default=ATTENDEE)
     active         = models.BooleanField('czy ćwiczy', default=True)
     email          = models.CharField('e-mail', max_length=100, null=True, default=None)
+    extra          = models.BooleanField('Dodatkowe płatności', default=True)
+    seminar        = models.BooleanField('Opłacony staż', default=False)
+    exam           = models.BooleanField('Opłacony egzamin', default=False)
 
     class Meta:
         unique_together = (("group", "first_name", "last_name"),)

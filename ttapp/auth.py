@@ -49,6 +49,11 @@ class Auth:
             "sport_card": user.has_sport_card,
             "name": "%s %s" % (user.first_name, user.last_name),
             "role": user.role,
+            "payments": {
+                "extra": user.extra,
+                "seminar": user.seminar,
+                "exam": user.exam,
+            },
         }
 
 
