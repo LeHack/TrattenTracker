@@ -20,7 +20,7 @@ class GroupsAdmin(admin.ModelAdmin):
 
 
 class AttendeesAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'login', 'has_sport_card', 'role', 'active')
+    list_display = ('__str__', 'login', 'has_sport_card', 'role', 'active', 'exam', 'seminar')
     list_filter = ['group', 'has_sport_card', 'active']
     search_fields = ['first_name', 'last_name']
     ordering = ('last_name', 'first_name')
