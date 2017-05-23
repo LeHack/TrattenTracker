@@ -112,8 +112,8 @@ class LoginModal extends Component {
         if (field !== undefined) {
             fields = [field];
         }
-        for (let f of fields) {
-            let len = this.state[f].length;
+        for (let i = 0; i < fields.length; i++){
+            let len = this.state[fields[i]].length;
             if (len < 3 || len > 100) {
                 output = 'error';
                 break;
@@ -159,7 +159,6 @@ class LoginModal extends Component {
                         <Modal.Title>Formularz logowania</Modal.Title>
                         <p>{this.state.msg}</p>
                     </Modal.Header>
-
                     <Modal.Body>
                         <form>
                             <FormGroup controlId="login" validationState={this.getValidationState("login")}>
@@ -174,7 +173,6 @@ class LoginModal extends Component {
                             </FormGroup>
                         </form>
                     </Modal.Body>
-
                     <Modal.Footer>
                         <Button bsStyle="primary" onClick={this.login}>Zaloguj</Button>
                     </Modal.Footer>

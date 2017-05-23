@@ -22,7 +22,8 @@ class TrainingSelect extends Component {
 
     getTrainingById(trainings, trainingId) {
         let selected = null;
-        for (let t of trainings) {
+        for (let i = 0; i < trainings.length; i++){
+            let t = trainings[i];
             if (t.id === trainingId) {
                 selected = t;
                 break;
@@ -146,8 +147,10 @@ class AttendanceInput extends Component {
 
     findSportCardUsers(attendees) {
         let sportCards = {};
-        for (let g of attendees) {
-            for (let a of g.entries) {
+        for (let i = 0; i < attendees.length; i++){
+            let g = attendees[i];
+            for (let j = 0; j < g.entries.length; j++){
+                let a = g.entries[j];
                 if (!(a.attenee_id in sportCards)) {
                     sportCards[a.attendee_id] = {}
                 }
@@ -175,7 +178,8 @@ class AttendanceInput extends Component {
                     // call REST backend for attendance data
                     let attendance = {};
                     let sportCards = {...self.state.sportCards};
-                    for (let att of data.attendance) {
+                    for (let i = 0; i < data.attendance.length; i++){
+                        let att = data.attendance[i];
                         attendance[att.attendee_id] = true;
                         sportCards[att.attendee_id]['used'] = att.sport_card;
                     }
@@ -274,7 +278,8 @@ class AttendanceInput extends Component {
         }
         // convert a list
         let attendance = [];
-        for (let aid of unsaved) {
+        for (let i = 0; i < unsaved.length; i++){
+            let aid = unsaved[i];
             if (unsaved.hasOwnProperty(aid)) {
                 attendance.push( unsaved[aid] );
             }

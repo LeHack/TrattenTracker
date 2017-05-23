@@ -20,7 +20,8 @@ var AuthorizedComponent = ComposedComponent => class extends Component {
             // redirect to login if role not available
             router.push('/');
         }
-        for (let r of routes) {
+        for (let i = 0; i < routes.length; i++){
+            let r = routes[i];
             if (r.authorize && r.authorize !== user.role) {
                 router.push('/');
                 break;

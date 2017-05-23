@@ -136,10 +136,13 @@ class PaymentsInput extends Component {
     }
 
     fetchOutstanding(attendees) {
-        for (let g of attendees) {
+        for (let i = 0; i < attendees.length; i++){
+            let g = attendees[i];
             this.balanceLoading[g.groupId] = true;
-	        utils.fetchGroupOutstanding(g.groupId, (data) => function(self, data, gid){
-                for (let aid of Object.keys(data.attendee)) {
+            utils.fetchGroupOutstanding(g.groupId, (data) => function(self, data, gid){
+                let attIds = Object.keys(data.attendee);
+                for (let j = 0; j < attIds.length; j++){
+                    let aid = attIds[j];
                     data.attendee[aid] = {$set: data.attendee[aid]};
                 }
                 let stateUpdate = {

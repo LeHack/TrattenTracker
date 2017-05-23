@@ -20,7 +20,8 @@ let GroupHandler = ComposedComponent => class extends Component {
         let attendeeData = JSON.parse(localStorage.getItem('attendeeData'));
         if (!attendeeData || attendeeData.timestamp + 60000 < new Date().getTime()) {
             utils.fetchGroups((data) => function(self, data){
-                for (let group of data.groups) {
+                for (let i = 0; i < data.groups.length; i++){
+                    let group = data.groups[i];
                     self.groupLoading.push({ id: group.group_id, done: false });
                     self.processGroup(group);
                 }
@@ -49,7 +50,8 @@ let GroupHandler = ComposedComponent => class extends Component {
                 },
                 entries: data.attendees,
             };
-            for (let g of self.groupLoading) {
+            for (let i = 0; i < self.groupLoading.length; i++){
+                let g = self.groupLoading[i];
                 if (g.id === group.group_id) {
                     g["attendees"] = [attendeGroup];
                     g["attendeeGroup"] = groupState;
@@ -64,7 +66,8 @@ let GroupHandler = ComposedComponent => class extends Component {
     finishProcessing() {
         let attendees = [];
         let groupState = {};
-        for (let group of this.groupLoading) {
+        for (let i = 0; i < this.groupLoading.length; i++){
+            let group = this.groupLoading[i];
             if (!group.done) {
                 return;
             }

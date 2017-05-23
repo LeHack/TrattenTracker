@@ -122,10 +122,13 @@ class AttendanceSummary extends Component {
     }
 
     fetchStats(attendees) {
-        for (let g of attendees) {
+        for (let i = 0; i < attendees.length; i++){
+            let g = attendees[i];
             this.statsLoading[g.groupId] = true;
             utils.fetchGroupAttendanceSummary(g.groupId, (data) => function(self, data, gid){
-                for (let aid of Object.keys(data.stats)) {
+                let attIds = Object.keys(data.stats);
+                for (let j = 0; j < attIds.length; j++){
+                    let aid = attIds[j];
                     data.stats[aid] = {$set: data.stats[aid]};
                 }
                 let stateUpdate = {
