@@ -152,7 +152,7 @@ def attendance_summary(request, attendee_id=None, group_id=None, split_by_month=
         attendees.append(get_object_or_404(Attendees, pk=attendee_id))
 
     return JsonResponse({
-        "stats": calculate_attendance_summary(attendees, split_by_month=split_by_month, month_range=3),
+        "stats": calculate_attendance_summary(attendees, split_by_month=split_by_month, month_range=6),
     }) # later remove to switch back to 6
 
 
