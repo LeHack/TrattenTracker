@@ -92,7 +92,7 @@ if changes:
             t.append(0)
             t.append(login.lower())
             t.append('haslo-do-ustawienia')
-            dst.execute('INSERT INTO ttapp_attendees (first_name, last_name, email, active, has_sport_card, group_id, discount, login, password, role) VALUES(?,?,?,?,?,?,?,?,?,"ATTENDEE")', t)
+            dst.execute('INSERT INTO ttapp_attendees (first_name, last_name, email, active, has_sport_card, group_id, discount, login, password, role, exam, extra, seminar) VALUES(?,?,?,?,?,?,?,?,?,"ATTENDEE",0,0,0)', t)
         else:
             t.append(p['id'])
             dst.execute('UPDATE ttapp_attendees SET first_name = ?, last_name = ?, email = ?, active = ? WHERE id = ?', t)
