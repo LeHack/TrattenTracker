@@ -15,6 +15,6 @@ pyenv local jenkins-tt
 pip install -U pip setuptools
 pip install -e ".[dev]"
 
-coverage run --source=ttapp --omit=\*/migrations/\* -m pytest
+coverage run --source=ttapp --omit=\*/migrations/\* -m pytest --junit-xml=test-results/pytest.xml
 coverage html --fail-under=80 -d coverage-report 
 exit $?
