@@ -18,7 +18,7 @@ class Groups(models.Model):
 
 
 class TrainingSchedule(models.Model):
-    group               = models.ForeignKey(Groups, related_name='trainings', verbose_name="Grupa", null=True, blank=True)
+    group               = models.ForeignKey(Groups, related_name='trainings', verbose_name="Grupa", null=True, blank=True, on_delete=models.CASCADE)
     dow                 = models.IntegerField('dzień tygodnia')
     begin_time          = models.TimeField('czas rozpoczęcia')
     end_time            = models.TimeField('czas zakończenia')
@@ -41,7 +41,7 @@ class TrainingSchedule(models.Model):
 
 
 class CancelledTrainings(models.Model):
-    schedule  = models.ForeignKey(TrainingSchedule, related_name='cancelled', verbose_name="Trening")
+    schedule  = models.ForeignKey(TrainingSchedule, related_name='cancelled', verbose_name="Trening", on_delete=models.CASCADE)
     date      = models.DateField('dzień odwołanych zajęć', default=timezone.now)
 
     class Meta:
@@ -60,7 +60,7 @@ class Attendees(models.Model):
         (ATTENDEE, 'Uczestnik'),
         (SENSEI,   'Prowadzący'),
     )
-    group          = models.ForeignKey(Groups, related_name='attendees', verbose_name="Grupa")
+    group          = models.ForeignKey(Groups, related_name='attendees', verbose_name="Grupa", on_delete=models.CASCADE)
     first_name     = models.CharField('imię', max_length=100)
     last_name      = models.CharField('nawisko', max_length=100)
     has_sport_card = models.BooleanField('czy posiada kartę sportową', default=False)
@@ -105,7 +105,7 @@ class Attendees(models.Model):
 
 class Session(models.Model):
     secret    = models.CharField(max_length=15, blank=True)
-    user      = models.ForeignKey(Attendees)
+    user      = models.ForeignKey(Attendees, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(default=timezone.now)
 
     def save(self, *args, **kwargs):
@@ -142,8 +142,8 @@ class Session(models.Model):
 
 
 class Attendance(models.Model):
-    attendee        = models.ForeignKey(Attendees, related_name='attendance', verbose_name='Uczestnik')
-    training        = models.ForeignKey(TrainingSchedule, related_name='attendance', verbose_name='Trening', null=True, blank=True)
+    attendee        = models.ForeignKey(Attendees, related_name='attendance', verbose_name='Uczestnik', on_delete=models.CASCADE)
+    training        = models.ForeignKey(TrainingSchedule, related_name='attendance', verbose_name='Trening', null=True, blank=True, on_delete=models.CASCADE)
     date            = models.DateField('dzień zajęć')
     added           = models.DateTimeField('czas rejestracji', default=timezone.now)
     used_sport_card = models.BooleanField('czy użył karty sportowej', default=False)
@@ -179,7 +179,7 @@ class Payment(models.Model):
         (CASH,     'Gotówka'),
         (TRANSFER, 'Przelew'),
     )
-    attendee     = models.ForeignKey(Attendees, related_name='payments', verbose_name='Uczestnik')
+    attendee     = models.ForeignKey(Attendees, related_name='payments', verbose_name='Uczestnik', on_delete=models.CASCADE)
     type         = models.CharField('typ', max_length=10, choices=TYPE, default=CASH)
     amount       = models.IntegerField('kwota')
     date         = models.DateTimeField('czas zajęć', default=timezone.now)
@@ -194,7 +194,7 @@ class Payment(models.Model):
 
 
 class MonthlyBalance(models.Model):
-    attendee  = models.ForeignKey(Attendees, related_name='balance', verbose_name='Uczestnik')
+    attendee  = models.ForeignKey(Attendees, related_name='balance', verbose_name='Uczestnik', on_delete=models.CASCADE)
     year      = models.IntegerField('rok')
     month     = models.IntegerField('miesiąc')
     amount    = models.IntegerField('bilans')
