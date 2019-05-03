@@ -19,7 +19,7 @@ def test_db_access():
     print(repr(Groups.objects.all()))
     Groups(name="Some new group", monthly_fee="8080").save()
     print(repr(Groups.objects.all()))
-    assert True
+    assert 0
 
 @mark.django_db
 def test_group_list(client):

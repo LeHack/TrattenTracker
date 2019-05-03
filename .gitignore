@@ -116,3 +116,6 @@ npm-debug.log*
 # intellij idea
 .idea
 *.iml
+
+# don't commit ssh keys
+ssh/
