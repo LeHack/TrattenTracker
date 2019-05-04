@@ -1,6 +1,8 @@
+from django.utils import timezone
 from freezegun import freeze_time
 
 from . import update_latest_session
+from ttapp.models import Attendees
 
 
 class TestGroup:
@@ -158,6 +160,12 @@ class TestPayments:
         assert len(r_data['payments']) == 2
         assert r_data['payments'][0] == {'date': '2019-05-02 00:00', 'type': 'Przelew', 'amount': 50, 'tax_reported': False}
 
+    def test_get_monthly_fee(self, cli, fake_user):
+        r = cli.get(f'/get/fee/attendee:{fake_user.id}')
+        assert r.status_code == 200
+        r_data = r.json()
+        assert r_data['amount'] == 100
+
     def test_summary_for_attendee(self, cli, fake_payments):
         aid = str(fake_payments.id)
         r = cli.get(f'/summarize/payments/attendee:{aid}')
@@ -172,3 +180,22 @@ class TestPayments:
         assert r.status_code == 200
         r_data = r.json()['attendee']
         assert r_data[aid] == {'outstanding': 50, 'monthly': 100}
+
+
+class TestSession:
+    def test_valid_session(self, cli):
+        r = cli.get('/get/session')
+        assert r.status_code == 200
+        r_data = r.json()
+        assert r_data['logged in']
+        assert r_data['attendee_id'] == Attendees.objects.get(role=Attendees.SENSEI).id
+        assert not r_data['sport_card']
+        assert r_data['name'] == 'test sensei'
+        assert r_data['role'] == 'SENSEI'
+
+    def test_invalid_session(self, cli):
+        update_latest_session(timezone.now() - timezone.timedelta(hours=10))
+        r = cli.get('/get/session')
+        assert r.status_code == 200
+        r_data = r.json()
+        assert not r_data['logged in']
