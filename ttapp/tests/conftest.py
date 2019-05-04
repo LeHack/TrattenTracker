@@ -1,11 +1,13 @@
-from datetime import datetime
+from django.utils.timezone import datetime, make_aware as atz
 from pytest import fixture
-from ttapp.models import Groups, Session, Attendees, TrainingSchedule, Attendance
+from ttapp.models import (
+    Groups, Session, Attendees, TrainingSchedule, Attendance, Payment, MonthlyBalance
+)
 
 
 @fixture
 def fake_group(db):  # @UnusedVariable
-    g = Groups(name="group 1", monthly_fee="1")
+    g = Groups(name="group 1", monthly_fee="100")
     g.save()
     return g
 
@@ -54,16 +56,25 @@ def fake_schedule(fake_group):
         "end_time": "20:00",
         "start_date": datetime(year=2019, month=4, day=1),
     }
-    TrainingSchedule(**schedule, dow=0).save()
-    TrainingSchedule(**schedule, dow=3).save()
+    ts1 = TrainingSchedule(**schedule, dow=0)
+    ts1.save()
+    ts2 = TrainingSchedule(**schedule, dow=3)
+    ts2.save()
+    return [ts1, ts2]
 
 @fixture
 def fake_attendance(fake_user, fake_schedule):
-    for ts in TrainingSchedule.objects.all():
-        at = Attendance(
-            attendee=fake_user,
-            training=ts,
-            date=datetime.today(),
-            used_sport_card=True,
-        )
-        at.save()
+    (ts1, ts2) = fake_schedule
+    common = {'attendee': fake_user}
+    Attendance(**common, training=ts2, date=datetime(year=2019, month=5, day= 2), used_sport_card=True).save()
+    Attendance(**common, training=ts1, date=datetime(year=2019, month=5, day= 6), used_sport_card=True).save()
+    Attendance(**common, training=ts2, date=datetime(year=2019, month=5, day= 9), used_sport_card=True).save()
+    Attendance(**common, training=ts1, date=datetime(year=2019, month=5, day=13), used_sport_card=False).save()
+    return fake_user
+
+@fixture
+def fake_payments(fake_user):
+    Payment(attendee=fake_user, type=Payment.CASH,     amount=100, date=atz(datetime(year=2019, month=4, day=2))).save()
+    Payment(attendee=fake_user, type=Payment.TRANSFER, amount=50,  date=atz(datetime(year=2019, month=5, day=2))).save()
+    MonthlyBalance(attendee=fake_user, year=2019, month=3, amount=0).save()
+    return fake_user

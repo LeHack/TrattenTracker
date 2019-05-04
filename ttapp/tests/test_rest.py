@@ -8,7 +8,7 @@ class TestGroup:
         r = cli.get('/list/groups')
         assert r.status_code == 200
         r_data = r.json()
-        assert r_data['groups'][0] == {'group_id': 1, 'name': 'group 1', 'fee': 1}
+        assert r_data['groups'][0] == {'group_id': 1, 'name': 'group 1', 'fee': 100}
         assert r_data['selected'] == 1
 
 
@@ -56,6 +56,8 @@ class TestTrainings:
         r_data = r.json()
         assert len(r_data['trainings']) == 9
         assert r_data['selected'] == 'training9'
+        assert r_data['trainings'][0]['date'] == '2019-04-01'
+        assert r_data['trainings'][-1]['date'] == '2019-04-29'
 
     def test_list_by_month_empty(self, cli):
         r = cli.get('/list/trainings/year:2019/month:3')
@@ -64,19 +66,109 @@ class TestTrainings:
         assert r_data['trainings'] == []
 
 
-# class TestAttendance:
-#     def test_list_by_attendee(self, cli):
-#         r = cli.get('/list/attendance/attendee:1')
-#         assert r.status_code == 200
-#         r_data = r.json()
-#         print(repr(r_data))
-#         assert r_data['groups'][0] == {'group_id': 1, 'name': 'group 1', 'fee': 1}
-#         assert r_data['selected'] == 1
-# 
-#     def test_list_by_date(self, cli):
-#         r = cli.get('/list/attendance/date:2019-05-03/time:19:00')
-#         assert r.status_code == 200
-#         r_data = r.json()
-#         print(repr(r_data))
-#         assert r_data['groups'][0] == {'group_id': 1, 'name': 'group 1', 'fee': 1}
-#         assert r_data['selected'] == 1
+class TestAttendance:
+    @freeze_time("2019-05-15 18:00")
+    def test_list_by_attendee(self, cli, fake_attendance):
+        update_latest_session()
+        aid = fake_attendance.id
+        r = cli.get(f'/list/attendance/attendee:{aid}/month:2019-05')
+        assert r.status_code == 200
+        r_data = r.json()
+        assert len(r_data['attendance']) == 4
+
+        attendance = r_data['attendance'][0]
+        assert attendance['attendee_id'] == aid
+        assert attendance['date'] == '2019-05-02 19:00'
+        assert attendance['sport_card']
+
+        attendance = r_data['attendance'][-1]
+        assert attendance['attendee_id'] == aid
+        assert attendance['date'] == '2019-05-13 19:00'
+        assert not attendance['sport_card']
+
+    @freeze_time("2019-05-15 18:00")
+    def test_list_by_date(self, cli, fake_attendance):
+        update_latest_session()
+        aid = fake_attendance.id
+
+        r = cli.get('/list/attendance/date:2019-05-02/time:19:00')
+        assert r.status_code == 200
+        r_data = r.json()
+        assert len(r_data['attendance']) == 1
+        attendance = r_data['attendance'][0]
+        assert attendance['attendee_id'] == aid
+        assert attendance['date'] == '2019-05-02 19:00'
+        assert attendance['sport_card']
+
+        r = cli.get('/list/attendance/date:2019-05-13/time:19:00')
+        assert r.status_code == 200
+        r_data = r.json()
+        assert len(r_data['attendance']) == 1
+        attendance = r_data['attendance'][0]
+        assert attendance['attendee_id'] == aid
+        assert attendance['date'] == '2019-05-13 19:00'
+        assert not attendance['sport_card']
+
+    @freeze_time("2019-05-15 18:00")
+    def test_summary_by_group(self, cli, fake_attendance):
+        update_latest_session()
+        aid = str(fake_attendance.id)
+        gid = fake_attendance.group.id
+        r = cli.get(f'/summarize/attendance/group:{gid}')
+        assert r.status_code == 200
+        r_data = r.json()['stats']
+        assert r_data[aid]['basic'] == {'count': 4, 'freq': '30'}
+        assert r_data[aid]['extra'] == {'count': 0}
+
+    @freeze_time("2019-05-15 18:00")
+    def test_summary_by_attendee_total(self, cli, fake_attendance):
+        update_latest_session()
+        aid = str(fake_attendance.id)
+        r = cli.get(f'/summarize/attendance/attendee:{aid}/total')
+        assert r.status_code == 200
+        r_data = r.json()['stats']
+        assert r_data[aid]['basic'] == {'count': 4, 'freq': '30'}
+        assert r_data[aid]['extra'] == {'count': 0}
+
+    @freeze_time("2019-05-15 18:00")
+    def test_summary_by_attendee_monthly(self, cli, fake_attendance):
+        update_latest_session()
+        aid = str(fake_attendance.id)
+        r = cli.get(f'/summarize/attendance/attendee:{aid}/monthly')
+        assert r.status_code == 200
+        r_data = r.json()['stats'][aid]
+        assert len(r_data) == 6
+        assert r_data[0]['month'] == 'Grudnia 2018'
+        assert r_data[0]['raw_month'] == '2018-12'
+        assert r_data[0]['basic'] == {'count': 0, 'freq': 0}
+        assert r_data[0]['extra'] == {'count': 0, 'freq': 0}
+
+        assert r_data[-1]['month'] == 'Maja 2019'
+        assert r_data[-1]['raw_month'] == '2019-05'
+        assert r_data[-1]['basic'] == {'count': 4, 'freq': '100'}
+        assert r_data[-1]['extra'] == {'count': 0, 'freq': 0}
+
+
+class TestPayments:
+    def test_list_for_attendee(self, cli, fake_payments):
+        aid = fake_payments.id
+        r = cli.get(f'/list/payments/attendee:{aid}')
+        assert r.status_code == 200
+        r_data = r.json()
+        assert len(r_data['payments']) == 2
+        assert r_data['payments'][0] == {'date': '2019-05-02 00:00', 'type': 'Przelew', 'amount': 50, 'tax_reported': False}
+
+    def test_summary_for_attendee(self, cli, fake_payments):
+        aid = str(fake_payments.id)
+        r = cli.get(f'/summarize/payments/attendee:{aid}')
+        assert r.status_code == 200
+        r_data = r.json()['attendee']
+        assert r_data[aid] == {'outstanding': 50, 'monthly': 100}
+
+    def test_summary_for_group(self, cli, fake_payments):
+        aid = str(fake_payments.id)
+        gid = fake_payments.group.id
+        r = cli.get(f'/summarize/payments/group:{gid}')
+        assert r.status_code == 200
+        r_data = r.json()['attendee']
+        assert r_data[aid] == {'outstanding': 50, 'monthly': 100}
