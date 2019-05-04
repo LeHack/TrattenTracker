@@ -15,8 +15,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
 parts/
 sdist/
 var/
@@ -93,13 +91,10 @@ ENV/
 .pydevproject
 .settings
 
-# virtualenv installation files (local)
-bin
-include
-pip-selfcheck.json
-
 # SQLite database
-db.sqlite3
+/db.sqlite3
+scripts/*.sqlite
+scripts/*.sqlite3
 
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
@@ -107,7 +102,8 @@ db.sqlite3
 node_modules
 
 # testing
-coverage
+coverage-report/
+test-results/
 
 # production
 assets
@@ -121,3 +117,6 @@ npm-debug.log*
 # intellij idea
 .idea
 *.iml
+
+# don't commit ssh keys
+ssh/

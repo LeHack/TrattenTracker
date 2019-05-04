@@ -100,7 +100,12 @@ def list_trainings(request, year=None, month=None, auth=None):
     if how_many:
         trainings = trainings[-1 * how_many:]
     # by default select the last one
-    return JsonResponse({"trainings": trainings, "selected": trainings[-1]["id"]})
+    out = {
+        "trainings": trainings,
+    }
+    if trainings:
+        out['selected'] = trainings[-1]["id"]
+    return JsonResponse(out)
 
 
 @request_authenticated
